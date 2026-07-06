@@ -3,6 +3,7 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import { getProductById } from "../../services/storage";
 import styles from "./ProductDetails.module.css";
+import BackButton from "../../components/BackButton/BackButton";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -32,6 +33,11 @@ export default function ProductDetails() {
       <Header />
 
       <main className={styles.page}>
+
+        <div className={styles.backWrapper}>
+  <BackButton fallbackPath="/" label="Back to Products" />
+</div>
+
         <section className={styles.detailsSection}>
           <div className={styles.imageBox}>
             <img src={product.image} alt={product.name} />

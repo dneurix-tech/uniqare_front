@@ -5,6 +5,7 @@ import Footer from "../../components/Footer/Footer";
 import { egyptGovernorates } from "../../data/governorates";
 import { addOrder, getProductById } from "../../services/storage";
 import styles from "./Checkout.module.css";
+import BackButton from "../../components/BackButton/BackButton";
 
 export default function Checkout() {
   const { id } = useParams();
@@ -28,6 +29,10 @@ export default function Checkout() {
       <>
         <Header />
         <main className={styles.page}>
+          <div className={styles.backWrapper}>
+  <BackButton fallbackPath="/" label="Back" />
+</div>
+
           <section className={styles.emptyState}>
             <h2>Product not found</h2>
             <Link to="/" className={styles.primaryButton}>

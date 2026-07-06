@@ -126,6 +126,10 @@
   background: var(--uniqare-primary-light);
 }
 
+.backWrapper {
+  padding-top: 24px;
+}
+
 .message {
   margin-top: 16px;
   padding: 14px;

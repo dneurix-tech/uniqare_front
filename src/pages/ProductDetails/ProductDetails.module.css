@@ -84,6 +84,10 @@
   font-weight: 800;
 }
 
+.backWrapper {
+  padding-top: 24px;
+}
+
 .primaryButton {
   background: var(--uniqare-primary);
   color: #fff;
