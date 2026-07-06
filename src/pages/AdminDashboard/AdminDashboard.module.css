@@ -1,0 +1,263 @@
+.page {
+  width: min(1200px, 94%);
+  margin: 0 auto;
+  padding: 30px 0 60px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 26px;
+}
+
+.topbar h1 {
+  margin: 0 0 6px;
+  color: var(--uniqare-primary);
+}
+
+.topbar p {
+  margin: 0;
+  color: var(--uniqare-muted);
+}
+
+.logoutButton {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  background: var(--danger-text);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.tabs button {
+  border: 1px solid var(--uniqare-primary);
+  border-radius: 999px;
+  padding: 12px 22px;
+  background: #fff;
+  color: var(--uniqare-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.activeTab {
+  background: var(--uniqare-primary) !important;
+  color: #fff !important;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid var(--uniqare-border);
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.productForm {
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--uniqare-border);
+}
+
+.productForm h2,
+.section h2 {
+  margin: 0 0 18px;
+  color: var(--uniqare-primary);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.productForm input,
+.productForm textarea {
+  width: 100%;
+  border: 1px solid #e2cfc4;
+  border-radius: 15px;
+  padding: 13px;
+  outline: none;
+  background: #fffdfb;
+  margin-bottom: 12px;
+}
+
+.productForm textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+}
+
+.primaryButton,
+.cancelButton {
+  border: none;
+  border-radius: 999px;
+  padding: 13px 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: var(--uniqare-primary);
+  color: #fff;
+}
+
+.cancelButton {
+  background: #e5e5e5;
+  color: #333;
+}
+
+.productsList,
+.ordersList {
+  display: grid;
+  gap: 16px;
+}
+
+.adminProductCard {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--uniqare-border);
+  border-radius: 20px;
+  padding: 14px;
+}
+
+.adminProductCard img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 15px;
+  background: var(--uniqare-soft);
+}
+
+.adminProductCard h3 {
+  margin: 0 0 6px;
+  color: var(--uniqare-primary);
+}
+
+.adminProductCard p {
+  margin: 4px 0;
+  color: var(--uniqare-muted);
+}
+
+.statusBadge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.available {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.soldOut {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+}
+
+.cardActions button {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: var(--uniqare-primary);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.deleteButton {
+  background: var(--danger-text) !important;
+}
+
+.orderCard {
+  border: 1px solid var(--uniqare-border);
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.orderMain {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 16px;
+}
+
+.orderMain img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: var(--uniqare-soft);
+}
+
+.orderMain h3 {
+  margin: 0 0 10px;
+  color: var(--uniqare-primary);
+}
+
+.orderMain p {
+  margin: 5px 0;
+  color: var(--uniqare-muted);
+}
+
+.shippingCheck {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--uniqare-primary);
+  font-weight: 800;
+}
+
+.emptyText {
+  color: var(--uniqare-muted);
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .adminProductCard {
+    grid-template-columns: 80px 1fr;
+  }
+
+  .cardActions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderMain {
+    grid-template-columns: 1fr;
+  }
+}

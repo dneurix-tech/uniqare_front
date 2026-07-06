@@ -1,0 +1,62 @@
+.header {
+  padding: 20px 16px 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #ebc0ca 0%, #e6c4ca 100%);
+  border-bottom: 1px solid rgba(137, 32, 71, 0.18);
+  box-shadow: 0 8px 24px rgba(137, 32, 71, 0.08);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s ease;
+}
+
+.brand:hover {
+  transform: translateY(-2px);
+}
+
+.logoCircle {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff;
+  border: 3px solid rgba(137, 32, 71, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(137, 32, 71, 0.18);
+}
+
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--uniqare-primary);
+  letter-spacing: 2px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .logoCircle {
+    width: 70px;
+    height: 70px;
+  }
+
+  .brandName {
+    font-size: 27px;
+  }
+}

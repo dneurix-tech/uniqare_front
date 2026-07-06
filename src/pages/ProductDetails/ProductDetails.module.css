@@ -1,0 +1,115 @@
+.page {
+  width: min(1100px, 92%);
+  margin: 0 auto;
+}
+
+.detailsSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+  padding: 46px 0;
+}
+
+.imageBox {
+  background: var(--uniqare-soft);
+  border: 1px solid var(--uniqare-border);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.imageBox img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.content {
+  background: #fff;
+  border: 1px solid var(--uniqare-border);
+  border-radius: 28px;
+  padding: 30px;
+  box-shadow: var(--shadow-soft);
+}
+
+.statusBadge {
+  display: inline-flex;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.available {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.soldOut {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.content h2 {
+  margin: 20px 0 12px;
+  color: var(--uniqare-primary);
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.08;
+}
+
+.content p {
+  margin: 0;
+  color: var(--uniqare-muted);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.price {
+  display: block;
+  margin: 24px 0;
+  color: var(--uniqare-primary);
+  font-size: 30px;
+}
+
+.primaryButton,
+.disabledButton {
+  border: none;
+  border-radius: 999px;
+  padding: 13px 22px;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.primaryButton {
+  background: var(--uniqare-primary);
+  color: #fff;
+  transition: 0.2s ease;
+}
+
+.primaryButton:hover {
+  background: var(--uniqare-primary-light);
+  transform: translateY(-2px);
+}
+
+.disabledButton {
+  background: #aaa;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  min-height: 45vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .detailsSection {
+    grid-template-columns: 1fr;
+  }
+}

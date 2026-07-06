@@ -1,0 +1,42 @@
+.footer {
+  margin-top: 56px;
+  padding: 34px 16px;
+  background: var(--uniqare-primary);
+  color: #fff;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.icons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.iconLink {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: var(--uniqare-primary);
+  border-radius: 50%;
+  font-size: 20px;
+  transition: 0.2s ease;
+}
+
+.iconLink:hover {
+  transform: translateY(-3px);
+  background: var(--uniqare-soft);
+}
+
+.copy {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+}

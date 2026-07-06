@@ -1,0 +1,128 @@
+.card {
+  background: var(--uniqare-surface);
+  border: 1px solid var(--uniqare-border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(137, 32, 71, 0.16);
+}
+
+.imageWrapper {
+  position: relative;
+  height: 185px;
+  background: linear-gradient(135deg, var(--uniqare-soft), var(--uniqare-soft-2));
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.04);
+}
+
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.available {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.soldOut {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.content {
+  padding: 14px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: var(--uniqare-primary);
+  line-height: 1.25;
+}
+
+.description {
+  margin: 0 0 14px;
+  color: var(--uniqare-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.price {
+  color: var(--uniqare-primary);
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.viewButton {
+  background: var(--uniqare-primary);
+  color: #fff;
+  padding: 9px 13px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 800;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.viewButton:hover {
+  background: var(--uniqare-primary-light);
+}
+
+@media (max-width: 600px) {
+  .imageWrapper {
+    height: 145px;
+  }
+
+  .content {
+    padding: 11px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .description {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .price {
+    font-size: 14px;
+  }
+
+  .viewButton {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 9px 10px;
+  }
+}
