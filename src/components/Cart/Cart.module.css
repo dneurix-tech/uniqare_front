@@ -1,0 +1,137 @@
+.page {
+  width: min(1050px, 92%);
+  margin: 0 auto;
+  padding: 28px 0;
+}
+
+.cartCard {
+  margin-top: 22px;
+  background: #fff;
+  border: 1px solid var(--uniqare-border);
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 22px;
+}
+
+.header h2 {
+  margin: 0;
+  color: var(--uniqare-primary);
+}
+
+.header p {
+  margin: 0;
+  color: var(--uniqare-muted);
+}
+
+.itemsList {
+  display: grid;
+  gap: 14px;
+}
+
+.cartItem {
+  display: grid;
+  grid-template-columns: 90px 1fr 120px 120px auto;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid rgba(137, 32, 71, 0.14);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.cartItem img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 14px;
+  background: var(--uniqare-soft);
+}
+
+.itemInfo h3 {
+  margin: 0 0 6px;
+  color: var(--uniqare-primary);
+}
+
+.itemInfo p,
+.itemInfo small {
+  margin: 0;
+  color: var(--uniqare-muted);
+}
+
+.quantityBox label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--uniqare-primary);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.quantityBox input {
+  width: 100%;
+  border: 1px solid #e2cfc4;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.itemTotal {
+  color: var(--uniqare-primary);
+}
+
+.removeButton {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.summary {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--uniqare-border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 22px;
+  color: var(--uniqare-primary);
+}
+
+.checkoutButton,
+.primaryButton {
+  margin-top: 18px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 20px;
+  background: var(--uniqare-primary);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.emptyCart {
+  text-align: center;
+  padding: 40px 0;
+}
+
+@media (max-width: 850px) {
+  .cartItem {
+    grid-template-columns: 75px 1fr;
+  }
+
+  .quantityBox,
+  .itemTotal,
+  .removeButton {
+    grid-column: 1 / -1;
+  }
+}

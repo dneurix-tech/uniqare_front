@@ -29,8 +29,12 @@ export default function Footer() {
       </div>
 
       <span className={styles.copy}>
-        © 2026 uniqare. All rights reserved.
-      </span>
+  Contact Us : 01095285287 .
+</span>
+
+<span className={styles.copy}>
+  © 2026 uniqare. All rights reserved.
+</span>
     </footer>
   );
 }

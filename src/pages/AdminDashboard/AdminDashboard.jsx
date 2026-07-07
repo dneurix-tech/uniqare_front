@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   addProduct,
   deleteProduct,
+  getAdminProducts,
   getOrders,
-  getProducts,
   updateOrderShippingStatus,
   updateProduct,
 } from "../../services/storage";
@@ -13,7 +13,7 @@ import styles from "./AdminDashboard.module.css";
 const emptyProductForm = {
   name: "",
   price: "",
-  image: "",
+  image: null,
   description: "",
   details: "",
   stock: "",
@@ -23,10 +23,46 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("products");
-  const [products, setProducts] = useState(getProducts());
-  const [orders, setOrders] = useState(getOrders());
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
   const [editingId, setEditingId] = useState(null);
   const [productForm, setProductForm] = useState(emptyProductForm);
+  const [imageInputKey, setImageInputKey] = useState(Date.now());
+
+  useEffect(() => {
+    loadProducts();
+    loadOrders();
+  }, []);
+
+  async function loadProducts() {
+    try {
+      setLoadingProducts(true);
+      const data = await getAdminProducts();
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
+  }
+
+  async function loadOrders() {
+    try {
+      setLoadingOrders(true);
+      const data = await getOrders();
+      setOrders(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }
 
   function logout() {
     localStorage.removeItem("uniqare_admin_logged_in");
@@ -34,62 +70,89 @@ export default function AdminDashboard() {
   }
 
   function handleProductChange(event) {
-    const { name, value } = event.target;
+    const { name, value, files, type } = event.target;
+
+    if (type === "file") {
+      setProductForm((prev) => ({ ...prev, [name]: files[0] || null }));
+      return;
+    }
+
     setProductForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleProductSubmit(event) {
+  async function handleProductSubmit(event) {
     event.preventDefault();
 
     if (
       !productForm.name ||
       !productForm.price ||
-      !productForm.image ||
       !productForm.description ||
-      !productForm.details ||
       productForm.stock === ""
     ) {
-      alert("Please fill all product fields");
+      alert("Please fill required product fields");
       return;
     }
 
-    if (editingId) {
-      updateProduct(editingId, productForm);
-      setEditingId(null);
-    } else {
-      addProduct(productForm);
+    if (!editingId && !productForm.image) {
+      alert("Please upload product image");
+      return;
     }
 
-    setProducts(getProducts());
-    setProductForm(emptyProductForm);
+    try {
+      if (editingId) {
+        await updateProduct(editingId, productForm);
+        setEditingId(null);
+      } else {
+        await addProduct(productForm);
+      }
+
+      await loadProducts();
+
+      setProductForm(emptyProductForm);
+      setImageInputKey(Date.now());
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong while saving product");
+    }
   }
 
   function startEdit(product) {
     setEditingId(product.id);
 
     setProductForm({
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      description: product.description,
-      details: product.details,
-      stock: product.stock,
+      name: product.name || "",
+      price: product.price || "",
+      image: null,
+      description: product.description || "",
+      details: product.details || product.description || "",
+      stock: product.stock ?? "",
     });
 
+    setImageInputKey(Date.now());
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handleDelete(productId) {
+  async function handleDelete(productId) {
     const confirmed = window.confirm("Are you sure you want to delete this product?");
     if (!confirmed) return;
 
-    deleteProduct(productId);
-    setProducts(getProducts());
+    try {
+      await deleteProduct(productId);
+      await loadProducts();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete product");
+    }
   }
 
-  function handleShippingChange(orderId, checked) {
-    updateOrderShippingStatus(orderId, checked);
-    setOrders(getOrders());
+  async function handleShippingChange(orderId, checked) {
+    try {
+      await updateOrderShippingStatus(orderId, checked);
+      await loadOrders();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update order status");
+    }
   }
 
   return (
@@ -151,10 +214,11 @@ export default function AdminDashboard() {
               />
 
               <input
+                key={imageInputKey}
                 name="image"
-                value={productForm.image}
+                type="file"
+                accept="image/*"
                 onChange={handleProductChange}
-                placeholder="Image URL"
               />
             </div>
 
@@ -184,6 +248,7 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setEditingId(null);
                     setProductForm(emptyProductForm);
+                    setImageInputKey(Date.now());
                   }}
                 >
                   Cancel
@@ -193,39 +258,48 @@ export default function AdminDashboard() {
           </form>
 
           <div className={styles.productsList}>
-            {products.map((product) => {
-              const isSoldOut = Number(product.stock) <= 0;
+            {loadingProducts ? (
+              <p>Loading products...</p>
+            ) : products.length === 0 ? (
+              <p className={styles.emptyText}>No products found.</p>
+            ) : (
+              products.map((product) => {
+                const isSoldOut = Number(product.stock) <= 0;
 
-              return (
-                <article className={styles.adminProductCard} key={product.id}>
-                  <img src={product.image} alt={product.name} />
+                return (
+                  <article className={styles.adminProductCard} key={product.id}>
+                    <img
+                      src={product.image_url || product.image}
+                      alt={product.name}
+                    />
 
-                  <div>
-                    <h3>{product.name}</h3>
-                    <p>{product.price} EGP</p>
-                    <p>Stock: {product.stock}</p>
+                    <div>
+                      <h3>{product.name}</h3>
+                      <p>{product.price} EGP</p>
+                      <p>Stock: {product.stock}</p>
 
-                    <span
-                      className={`${styles.statusBadge} ${
-                        isSoldOut ? styles.soldOut : styles.available
-                      }`}
-                    >
-                      {isSoldOut ? "Sold Out" : "Available"}
-                    </span>
-                  </div>
+                      <span
+                        className={`${styles.statusBadge} ${
+                          isSoldOut ? styles.soldOut : styles.available
+                        }`}
+                      >
+                        {isSoldOut ? "Sold Out" : "Available"}
+                      </span>
+                    </div>
 
-                  <div className={styles.cardActions}>
-                    <button onClick={() => startEdit(product)}>Edit</button>
-                    <button
-                      className={styles.deleteButton}
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
+                    <div className={styles.cardActions}>
+                      <button onClick={() => startEdit(product)}>Edit</button>
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                );
+              })
+            )}
           </div>
         </section>
       )}
@@ -234,14 +308,18 @@ export default function AdminDashboard() {
         <section className={styles.section}>
           <h2>Orders</h2>
 
-          {orders.length === 0 ? (
+          {loadingOrders ? (
+            <p>Loading orders...</p>
+          ) : orders.length === 0 ? (
             <p className={styles.emptyText}>No orders yet.</p>
           ) : (
             <div className={styles.ordersList}>
               {orders.map((order) => (
                 <article className={styles.orderCard} key={order.id}>
                   <div className={styles.orderMain}>
-                    <img src={order.productImage} alt={order.productName} />
+                    {order.productImage && (
+                      <img src={order.productImage} alt={order.productName} />
+                    )}
 
                     <div>
                       <h3>{order.productName}</h3>

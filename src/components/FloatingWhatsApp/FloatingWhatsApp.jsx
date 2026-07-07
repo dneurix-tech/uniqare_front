@@ -8,7 +8,7 @@ export default function FloatingWhatsApp() {
   return (
     <a
       className={styles.whatsapp}
-      href={`https://wa.me/${+201095285287}?text=${encodeURIComponent(message)}`}
+      href={`https://wa.me/${201095285287}?text=${encodeURIComponent(message)}`}
       target="_blank"
       rel="noreferrer"
       aria-label="WhatsApp"

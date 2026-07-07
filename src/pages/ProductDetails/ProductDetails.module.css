@@ -117,3 +117,95 @@
     grid-template-columns: 1fr;
   }
 }
+
+.stockNotice {
+  margin: 14px 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  font-weight: 900;
+  text-align: center;
+}
+
+.soldOutNotice {
+  margin: 14px 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-weight: 900;
+  text-align: center;
+}
+
+.quantityBox {
+  margin-top: 16px;
+}
+
+.quantityBox label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--uniqare-primary);
+  font-weight: 900;
+}
+
+.quantityBox input {
+  width: 100%;
+  border: 1px solid rgba(137, 32, 71, 0.18);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.quantityBox input:focus {
+  border-color: var(--uniqare-primary);
+}
+
+.cartMessage {
+  margin-top: 12px;
+  border-radius: 14px;
+  padding: 11px 13px;
+  background: #fff7fa;
+  color: var(--uniqare-primary);
+  font-weight: 800;
+}
+
+.actionsRow {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.actionsRow .primaryButton,
+.actionsRow .secondaryButton {
+  flex: 1;
+}
+
+.secondaryButton {
+  border: 1px solid var(--uniqare-primary);
+  border-radius: var(--radius-pill);
+  padding: 13px 18px;
+  background: #fff;
+  color: var(--uniqare-primary);
+  font-weight: 900;
+  cursor: pointer;
+  text-align: center;
+}
+
+.cartLink {
+  margin-top: 14px;
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+  color: var(--uniqare-primary);
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .actionsRow {
+    flex-direction: column;
+  }
+}
