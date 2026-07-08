@@ -203,7 +203,12 @@ function handleBuyNow() {
 
             <h2>{product.name}</h2>
 
-            <p>{product.description}</p>
+            <p>
+  {product.long_description ||
+    product.short_description ||
+    product.description ||
+    ""}
+</p>
 
             <strong className={styles.price}>{product.price} EGP</strong>
 

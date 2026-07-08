@@ -7,9 +7,29 @@ const API_URL = "https://uniqare-production.up.railway.app";
 function normalizeProduct(product) {
   return {
     ...product,
+
     image: product.image_url,
     image_url: product.image_url,
-    details: product.description,
+
+    short_description:
+      product.short_description || product.description || "",
+
+    long_description:
+      product.long_description ||
+      product.short_description ||
+      product.description ||
+      "",
+
+    // Compatibility عشان أي كود قديم لسه بيستخدم description/details
+    description:
+      product.short_description || product.description || "",
+
+    details:
+      product.long_description ||
+      product.short_description ||
+      product.description ||
+      "",
+
     stock: Number(product.stock || 0),
     is_active: product.is_active,
   };
@@ -68,7 +88,17 @@ export async function addProduct(product) {
   const formData = new FormData();
 
   formData.append("name", product.name);
-  formData.append("description", product.description || product.details || "");
+
+  formData.append(
+    "short_description",
+    product.short_description || product.description || ""
+  );
+
+  formData.append(
+    "long_description",
+    product.long_description || product.details || ""
+  );
+
   formData.append("price", product.price);
   formData.append("category", product.category || "");
   formData.append("stock", product.stock);
@@ -84,6 +114,8 @@ export async function addProduct(product) {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Add product API error:", errorText);
     throw new Error("Failed to add product");
   }
 
@@ -98,8 +130,24 @@ export async function updateProduct(id, product) {
     formData.append("name", product.name);
   }
 
-  if (product.description !== undefined || product.details !== undefined) {
-    formData.append("description", product.description || product.details || "");
+  if (
+    product.short_description !== undefined ||
+    product.description !== undefined
+  ) {
+    formData.append(
+      "short_description",
+      product.short_description || product.description || ""
+    );
+  }
+
+  if (
+    product.long_description !== undefined ||
+    product.details !== undefined
+  ) {
+    formData.append(
+      "long_description",
+      product.long_description || product.details || ""
+    );
   }
 
   if (product.price !== undefined) {
@@ -114,6 +162,10 @@ export async function updateProduct(id, product) {
     formData.append("stock", product.stock);
   }
 
+  if (product.is_active !== undefined) {
+    formData.append("is_active", product.is_active);
+  }
+
   if (product.image) {
     formData.append("image", product.image);
   }
@@ -124,6 +176,8 @@ export async function updateProduct(id, product) {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Update product API error:", errorText);
     throw new Error("Failed to update product");
   }
 
