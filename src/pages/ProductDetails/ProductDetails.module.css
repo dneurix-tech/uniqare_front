@@ -209,3 +209,39 @@
     flex-direction: column;
   }
 }
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quantityControl input {
+  width: 90px;
+  text-align: center;
+}
+
+.quantityButton {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--uniqare-primary);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--uniqare-primary);
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background: var(--uniqare-primary);
+  color: #fff;
+}
+
+.quantityButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

@@ -38,36 +38,71 @@ export default function ProductDetails() {
   }, [id]);
 
   function handleQuantityChange(event) {
-    const value = event.target.value;
+  const value = event.target.value;
 
-    // أرقام فقط بدون text وبدون float
-    if (!/^\d*$/.test(value)) return;
+  // Numbers only, no text and no float
+  if (!/^\d*$/.test(value)) return;
 
-    setQuantity(value);
-    setCartMessage("");
+  setQuantity(value);
+
+  if (value === "0") {
+    setCartMessage("Quantity must be at least 1");
+    return;
   }
+
+  setCartMessage("");
+}
+
+  
+function handleIncreaseQuantity() {
+  if (!product) return;
+
+  const stock = Number(product.stock || 0);
+  const currentQuantity = Number(quantity) || 1;
+
+  if (currentQuantity >= stock) {
+    setQuantity(String(stock));
+    setCartMessage(`Only ${stock} pieces available`);
+    return;
+  }
+
+  setQuantity(String(currentQuantity + 1));
+  setCartMessage("");
+}
+
+function handleDecreaseQuantity() {
+  const currentQuantity = Number(quantity) || 1;
+
+  if (currentQuantity <= 1) {
+    setQuantity("1");
+    return;
+  }
+
+  setQuantity(String(currentQuantity - 1));
+  setCartMessage("");
+}
 
   function validateQuantity() {
-    const stock = Number(product?.stock || 0);
-    const selectedQuantity = Number(quantity);
+  const stock = Number(product?.stock || 0);
+  const selectedQuantity = Number(quantity);
 
-    if (!quantity.trim()) {
-      setCartMessage("Quantity is required");
-      return false;
-    }
-
-    if (!/^[1-9]\d*$/.test(quantity)) {
-      setCartMessage("Quantity must be at least 1");
-      return false;
-    }
-
-    if (selectedQuantity > stock) {
-      setCartMessage(`Only ${stock} pieces available`);
-      return false;
-    }
-
-    return true;
+  if (!quantity.trim()) {
+    setCartMessage("Quantity is required");
+    return false;
   }
+
+  if (!/^[1-9]\d*$/.test(quantity)) {
+    setCartMessage("Quantity must be at least 1");
+    return false;
+  }
+
+  if (selectedQuantity > stock) {
+    setCartMessage(`Only ${stock} pieces available`);
+    return false;
+  }
+
+  return true;
+}
 
   function handleAddToCart() {
     if (!product) return;
@@ -187,20 +222,40 @@ function handleBuyNow() {
                 </div>
 
                 <div className={styles.quantityBox}>
-                  <label>Quantity *</label>
+  <label>Quantity *</label>
 
-                  <input
-                    value={quantity}
-                    onChange={handleQuantityChange}
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="Enter quantity"
-                  />
+  <div className={styles.quantityControl}>
+    <button
+      type="button"
+      className={styles.quantityButton}
+      onClick={handleDecreaseQuantity}
+      disabled={Number(quantity) <= 1}
+    >
+      -
+    </button>
 
-                  {quantity && Number(quantity) > stock && (
-                    <small>Only {stock} pieces available</small>
-                  )}
-                </div>
+    <input
+  value={quantity}
+  onChange={handleQuantityChange}
+  inputMode="numeric"
+  pattern="[0-9]*"
+  placeholder="1"
+/>
+
+    <button
+      type="button"
+      className={styles.quantityButton}
+      onClick={handleIncreaseQuantity}
+      disabled={Number(quantity) >= stock}
+    >
+      +
+    </button>
+  </div>
+
+  {quantity && Number(quantity) > stock && (
+    <small>Only {stock} pieces available</small>
+  )}
+</div>
 
                 {cartMessage && (
                   <div className={styles.cartMessage}>{cartMessage}</div>
