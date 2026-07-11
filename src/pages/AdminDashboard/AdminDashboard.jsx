@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   addCoupon,
@@ -298,11 +298,14 @@ export default function AdminDashboard() {
     return Number(order.total_price || order.finalPrice || order.total || 0);
   }
 
-  function getProductById(productId) {
+const getProductById = useCallback(
+  (productId) => {
     return products.find(
       (product) => Number(product.id) === Number(productId)
     );
-  }
+  },
+  [products]
+);
 
   function startEditOrder(order) {
     const items = getOrderItems(order).map((item) => ({
@@ -477,7 +480,13 @@ export default function AdminDashboard() {
       discount: Number(discount.toFixed(2)),
       total: Number((subtotal - discount).toFixed(2)),
     };
-  }, [orderForm.items, orderForm.coupon_code, orderForm.coupon_discount_type, orderForm.coupon_discount_value, products]);
+}, [
+  orderForm.items,
+  orderForm.coupon_code,
+  orderForm.coupon_discount_type,
+  orderForm.coupon_discount_value,
+  getProductById,
+]);
 
   async function handleOrderUpdate(event) {
     event.preventDefault();
