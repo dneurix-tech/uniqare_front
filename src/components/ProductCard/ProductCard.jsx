@@ -1,20 +1,35 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./ProductCard.module.css";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onAddToCart }) {
   const navigate = useNavigate();
 
   const stock = Number(product.stock || 0);
   const isSoldOut = stock <= 0 || product.is_active === false;
+
+  const price = Number(product.price || 0);
+  const oldPrice = Number(product.old_price || product.oldPrice || 0);
+
+  const hasDiscount = oldPrice > price;
 
   function openProductDetails() {
     navigate(`/product/${product.id}`);
   }
 
   function handleKeyDown(event) {
+    if (event.target.tagName === "BUTTON") return;
+
     if (event.key === "Enter" || event.key === " ") {
       openProductDetails();
     }
+  }
+
+  function handleAddToCart(event) {
+    event.stopPropagation();
+
+    if (isSoldOut) return;
+
+    onAddToCart(product);
   }
 
   return (
@@ -39,6 +54,10 @@ export default function ProductCard({ product }) {
         >
           {isSoldOut ? "Sold Out" : "Available"}
         </span>
+
+        {hasDiscount && !isSoldOut && (
+          <span className={styles.discountBadge}>Sale</span>
+        )}
       </div>
 
       <div className={styles.content}>
@@ -60,7 +79,13 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className={styles.footer}>
-          <strong className={styles.price}>{product.price} EGP</strong>
+          <div className={styles.priceBox}>
+            {hasDiscount && (
+              <span className={styles.oldPrice}>{oldPrice} EGP</span>
+            )}
+
+            <strong className={styles.price}>{price} EGP</strong>
+          </div>
 
           {isSoldOut ? (
             <button
@@ -72,16 +97,26 @@ export default function ProductCard({ product }) {
               Sold Out
             </button>
           ) : (
-            <button
-              type="button"
-              className={styles.viewButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                openProductDetails();
-              }}
-            >
-              View Product
-            </button>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.viewButton}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openProductDetails();
+                }}
+              >
+                View Product
+              </button>
+
+              <button
+                type="button"
+                className={styles.cartButton}
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </button>
+            </div>
           )}
         </div>
       </div>

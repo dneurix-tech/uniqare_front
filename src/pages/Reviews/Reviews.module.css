@@ -1,0 +1,86 @@
+.page {
+  min-height: 100vh;
+  padding: 40px 20px 70px;
+  background: #fff8fa;
+}
+
+.hero {
+  max-width: 900px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.label {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #892047;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  color: #892047;
+  font-size: 38px;
+}
+
+.hero p {
+  margin: 0;
+  color: #845f69;
+  font-size: 16px;
+}
+
+.status,
+.error {
+  text-align: center;
+  color: #845f69;
+  font-weight: 700;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.grid {
+  max-width: 1150px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #f1d7de;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 35px rgba(137, 32, 71, 0.08);
+}
+
+.image {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: block;
+}
+
+.content {
+  padding: 18px;
+}
+
+.stars {
+  color: #892047;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.content p {
+  margin: 0 0 14px;
+  color: #845f69;
+  line-height: 1.7;
+}
+
+.content strong {
+  color: #892047;
+}

@@ -1,14 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  addCoupon,
   addProduct,
+  deleteCoupon,
+  deleteOrder,
   deleteProduct,
+  getAdminCoupons,
   getAdminProducts,
   getOrders,
-  updateOrderShippingStatus,
+  updateCoupon,
+  updateOrderDetails,
   updateProduct,
 } from "../../services/storage";
+import ReviewsPage from "../Admin/ReviewsPage";
 import styles from "./AdminDashboard.module.css";
+
+const CART_DISCOUNT_THRESHOLD = 1000;
+const CART_DISCOUNT_PERCENT = 0.1;
 
 const emptyProductForm = {
   name: "",
@@ -19,23 +28,62 @@ const emptyProductForm = {
   stock: "",
 };
 
+const emptyOrderForm = {
+  customer_name: "",
+  phone: "",
+  email: "",
+  governorate: "",
+  address: "",
+  note: "",
+  status: "pending",
+  payment_method: "",
+  payment_status: "",
+  payment_details: "",
+  coupon_code: "",
+  coupon_discount_type: "",
+  coupon_discount_value: 0,
+  items: [],
+};
+
+const emptyCouponForm = {
+  code: "",
+  discount_type: "percent",
+  discount_value: "",
+  min_order_amount: "0",
+  usage_limit: "",
+  expires_at: "",
+  is_active: true,
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("products");
+
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [coupons, setCoupons] = useState([]);
 
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [loadingCoupons, setLoadingCoupons] = useState(true);
 
   const [editingId, setEditingId] = useState(null);
   const [productForm, setProductForm] = useState(emptyProductForm);
   const [imageInputKey, setImageInputKey] = useState(Date.now());
 
+  const [editingOrderId, setEditingOrderId] = useState(null);
+  const [orderForm, setOrderForm] = useState(emptyOrderForm);
+  const [newOrderProductId, setNewOrderProductId] = useState("");
+
+  const [editingCouponId, setEditingCouponId] = useState(null);
+  const [couponForm, setCouponForm] = useState(emptyCouponForm);
+  const [savingCoupon, setSavingCoupon] = useState(false);
+
   useEffect(() => {
     loadProducts();
     loadOrders();
+    loadCoupons();
   }, []);
 
   async function loadProducts() {
@@ -64,20 +112,43 @@ export default function AdminDashboard() {
     }
   }
 
+  async function loadCoupons() {
+    try {
+      setLoadingCoupons(true);
+      const data = await getAdminCoupons();
+      setCoupons(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setCoupons([]);
+    } finally {
+      setLoadingCoupons(false);
+    }
+  }
+
   function logout() {
     localStorage.removeItem("uniqare_admin_logged_in");
     navigate("/admin-login");
   }
 
+  /* =========================
+     Products
+  ========================= */
+
   function handleProductChange(event) {
     const { name, value, files, type } = event.target;
 
     if (type === "file") {
-      setProductForm((prev) => ({ ...prev, [name]: files[0] || null }));
+      setProductForm((prev) => ({
+        ...prev,
+        [name]: files?.[0] || null,
+      }));
       return;
     }
 
-    setProductForm((prev) => ({ ...prev, [name]: value }));
+    setProductForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   }
 
   async function handleProductSubmit(event) {
@@ -101,18 +172,18 @@ export default function AdminDashboard() {
     try {
       if (editingId) {
         await updateProduct(editingId, productForm);
-        setEditingId(null);
       } else {
         await addProduct(productForm);
       }
 
       await loadProducts();
 
+      setEditingId(null);
       setProductForm(emptyProductForm);
       setImageInputKey(Date.now());
     } catch (err) {
       console.error(err);
-      alert("Something went wrong while saving product");
+      alert(err.message || "Something went wrong while saving product");
     }
   }
 
@@ -123,8 +194,15 @@ export default function AdminDashboard() {
       name: product.name || "",
       price: product.price || "",
       image: null,
-      description: product.description || "",
-      details: product.details || product.description || "",
+      description:
+        product.short_description ||
+        product.description ||
+        "",
+      details:
+        product.long_description ||
+        product.details ||
+        product.description ||
+        "",
       stock: product.stock ?? "",
     });
 
@@ -132,8 +210,17 @@ export default function AdminDashboard() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function cancelEditProduct() {
+    setEditingId(null);
+    setProductForm(emptyProductForm);
+    setImageInputKey(Date.now());
+  }
+
   async function handleDelete(productId) {
-    const confirmed = window.confirm("Are you sure you want to delete this product?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+
     if (!confirmed) return;
 
     try {
@@ -141,17 +228,500 @@ export default function AdminDashboard() {
       await loadProducts();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete product");
+      alert(err.message || "Failed to delete product");
     }
   }
 
-  async function handleShippingChange(orderId, checked) {
+  /* =========================
+     Orders
+  ========================= */
+
+  function getOrderItems(order) {
+    return Array.isArray(order.items) ? order.items : [];
+  }
+
+  function getOrderProductTitle(order) {
+    const items = getOrderItems(order);
+
+    if (items.length === 0) {
+      return (
+        order.productName ||
+        order.product_name ||
+        order.product?.name ||
+        "No products"
+      );
+    }
+
+    if (items.length === 1) {
+      const firstItem = items[0];
+
+      return (
+        firstItem.product_name ||
+        firstItem.product?.name ||
+        firstItem.name ||
+        `Product #${firstItem.product_id}`
+      );
+    }
+
+    return `${items.length} products`;
+  }
+
+  function getOrderImage(order) {
+    const firstItem = getOrderItems(order)[0];
+
+    return (
+      firstItem?.product_image ||
+      firstItem?.image ||
+      firstItem?.product?.image_url ||
+      firstItem?.product?.image ||
+      order.productImage ||
+      order.product_image ||
+      ""
+    );
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleString();
+  }
+
+  function getCustomerName(order) {
+    return order.customer_name || order.customerName || "-";
+  }
+
+  function getOrderTotal(order) {
+    return Number(order.total_price || order.finalPrice || order.total || 0);
+  }
+
+  function getProductById(productId) {
+    return products.find(
+      (product) => Number(product.id) === Number(productId)
+    );
+  }
+
+  function startEditOrder(order) {
+    const items = getOrderItems(order).map((item) => ({
+      id: item.id,
+      product_id: Number(item.product_id),
+      product_name:
+        item.product_name ||
+        item.product?.name ||
+        item.name ||
+        `Product #${item.product_id}`,
+      product_image:
+        item.product_image ||
+        item.product?.image_url ||
+        item.image ||
+        "",
+      quantity: Number(item.quantity || 1),
+      unit_price: Number(item.unit_price || 0),
+    }));
+
+    setEditingOrderId(order.id);
+
+    setOrderForm({
+      customer_name: order.customer_name || order.customerName || "",
+      phone: order.phone || "",
+      email: order.email || "",
+      governorate: order.governorate || "",
+      address: order.address || "",
+      note: order.note || "",
+      status: order.status || "pending",
+      payment_method: order.payment_method || "",
+      payment_status: order.payment_status || "",
+      payment_details: order.payment_details || "",
+      coupon_code: order.coupon_code || "",
+      coupon_discount_type: order.coupon_discount_type || "",
+      coupon_discount_value: Number(order.coupon_discount_value || 0),
+      items,
+    });
+
+    setNewOrderProductId("");
+    setActiveTab("orders");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEditOrder() {
+    setEditingOrderId(null);
+    setOrderForm(emptyOrderForm);
+    setNewOrderProductId("");
+  }
+
+  function handleOrderFormChange(event) {
+    const { name, value } = event.target;
+
+    setOrderForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  function changeOrderItemQuantity(index, nextQuantity) {
+    const quantity = Math.max(1, Number(nextQuantity) || 1);
+
+    setOrderForm((prev) => ({
+      ...prev,
+      items: prev.items.map((item, itemIndex) =>
+        itemIndex === index
+          ? { ...item, quantity }
+          : item
+      ),
+    }));
+  }
+
+  function removeOrderItem(index) {
+    setOrderForm((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  function addProductToOrder() {
+    const productId = Number(newOrderProductId);
+
+    if (!productId) {
+      alert("Please select a product");
+      return;
+    }
+
+    const product = getProductById(productId);
+
+    if (!product) {
+      alert("Product not found");
+      return;
+    }
+
+    if (Number(product.stock || 0) <= 0 || product.is_active === false) {
+      alert("This product is not currently available");
+      return;
+    }
+
+    setOrderForm((prev) => {
+      const existingIndex = prev.items.findIndex(
+        (item) => Number(item.product_id) === productId
+      );
+
+      if (existingIndex >= 0) {
+        return {
+          ...prev,
+          items: prev.items.map((item, index) =>
+            index === existingIndex
+              ? {
+                  ...item,
+                  quantity: Number(item.quantity || 0) + 1,
+                }
+              : item
+          ),
+        };
+      }
+
+      return {
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            product_id: productId,
+            product_name: product.name,
+            product_image: product.image_url || product.image || "",
+            quantity: 1,
+            unit_price: Number(product.price || 0),
+          },
+        ],
+      };
+    });
+
+    setNewOrderProductId("");
+  }
+
+  const orderPreview = useMemo(() => {
+    const subtotal = orderForm.items.reduce((sum, item) => {
+      const product = getProductById(item.product_id);
+      const unitPrice =
+        Number(item.unit_price) ||
+        Number(product?.price || 0);
+
+      return sum + unitPrice * Number(item.quantity || 0);
+    }, 0);
+
+    let couponDiscount = 0;
+
+    if (
+      orderForm.coupon_code &&
+      orderForm.coupon_discount_value > 0
+    ) {
+      if (orderForm.coupon_discount_type === "percent") {
+        couponDiscount =
+          subtotal * (orderForm.coupon_discount_value / 100);
+      } else if (orderForm.coupon_discount_type === "fixed") {
+        couponDiscount = orderForm.coupon_discount_value;
+      }
+    }
+
+    const cartDiscount =
+      subtotal > CART_DISCOUNT_THRESHOLD
+        ? subtotal * CART_DISCOUNT_PERCENT
+        : 0;
+
+    const discount = Math.min(
+      subtotal,
+      couponDiscount + cartDiscount
+    );
+
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      discount: Number(discount.toFixed(2)),
+      total: Number((subtotal - discount).toFixed(2)),
+    };
+  }, [orderForm.items, orderForm.coupon_code, orderForm.coupon_discount_type, orderForm.coupon_discount_value, products]);
+
+  async function handleOrderUpdate(event) {
+    event.preventDefault();
+
+    if (!editingOrderId) return;
+
+    if (!orderForm.customer_name.trim()) {
+      alert("Customer name is required");
+      return;
+    }
+
+    if (!orderForm.phone.trim()) {
+      alert("Phone is required");
+      return;
+    }
+
+    if (!orderForm.governorate.trim()) {
+      alert("Governorate is required");
+      return;
+    }
+
+    if (!orderForm.address.trim()) {
+      alert("Address is required");
+      return;
+    }
+
+    if (!orderForm.items.length) {
+      alert("The order must contain at least one product");
+      return;
+    }
+
+    const hasInvalidQuantity = orderForm.items.some(
+      (item) =>
+        !Number.isInteger(Number(item.quantity)) ||
+        Number(item.quantity) <= 0
+    );
+
+    if (hasInvalidQuantity) {
+      alert("Every product quantity must be a positive whole number");
+      return;
+    }
+
     try {
-      await updateOrderShippingStatus(orderId, checked);
+      await updateOrderDetails(editingOrderId, {
+        customer_name: orderForm.customer_name.trim(),
+        phone: orderForm.phone.trim(),
+        email: orderForm.email.trim(),
+        governorate: orderForm.governorate.trim(),
+        address: orderForm.address.trim(),
+        note: orderForm.note.trim(),
+        status: orderForm.status,
+        payment_method: orderForm.payment_method,
+        payment_status: orderForm.payment_status,
+        payment_details: orderForm.payment_details,
+        items: orderForm.items.map((item) => ({
+          product_id: Number(item.product_id),
+          quantity: Number(item.quantity),
+        })),
+      });
+
+      await Promise.all([loadOrders(), loadProducts()]);
+      cancelEditOrder();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update order");
+    }
+  }
+
+  async function handleOrderDelete(orderId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this order? Stock will be returned."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteOrder(orderId);
+      await Promise.all([loadOrders(), loadProducts(), loadCoupons()]);
+
+      if (editingOrderId === orderId) {
+        cancelEditOrder();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete order");
+    }
+  }
+
+  async function handleOrderStatusChange(orderId, status) {
+    try {
+      await updateOrderDetails(orderId, { status });
       await loadOrders();
     } catch (err) {
       console.error(err);
-      alert("Failed to update order status");
+      alert(err.message || "Failed to update order status");
+    }
+  }
+
+  /* =========================
+     Coupons
+  ========================= */
+
+  function handleCouponChange(event) {
+    const { name, value, type, checked } = event.target;
+
+    setCouponForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  }
+
+  function toDateTimeLocal(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    const timezoneOffset = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - timezoneOffset)
+      .toISOString()
+      .slice(0, 16);
+  }
+
+  function startEditCoupon(coupon) {
+    setEditingCouponId(coupon.id);
+    setCouponForm({
+      code: coupon.code || "",
+      discount_type: coupon.discount_type || "percent",
+      discount_value: coupon.discount_value ?? "",
+      min_order_amount: coupon.min_order_amount ?? "0",
+      usage_limit: coupon.usage_limit ?? "",
+      expires_at: toDateTimeLocal(coupon.expires_at),
+      is_active: Boolean(coupon.is_active),
+    });
+
+    setActiveTab("coupons");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEditCoupon() {
+    setEditingCouponId(null);
+    setCouponForm(emptyCouponForm);
+  }
+
+  async function handleCouponSubmit(event) {
+    event.preventDefault();
+
+    const code = couponForm.code.trim().toUpperCase();
+    const discountValue = Number(couponForm.discount_value);
+    const minimumOrder = Number(couponForm.min_order_amount || 0);
+    const usageLimit =
+      couponForm.usage_limit === ""
+        ? null
+        : Number(couponForm.usage_limit);
+
+    if (!code) {
+      alert("Coupon code is required");
+      return;
+    }
+
+    if (discountValue <= 0) {
+      alert("Discount value must be greater than 0");
+      return;
+    }
+
+    if (
+      couponForm.discount_type === "percent" &&
+      discountValue > 100
+    ) {
+      alert("Percentage cannot be more than 100%");
+      return;
+    }
+
+    if (minimumOrder < 0) {
+      alert("Minimum order cannot be negative");
+      return;
+    }
+
+    if (usageLimit !== null && usageLimit <= 0) {
+      alert("Usage limit must be greater than 0");
+      return;
+    }
+
+    const payload = {
+      code,
+      discount_type: couponForm.discount_type,
+      discount_value: discountValue,
+      min_order_amount: minimumOrder,
+      usage_limit: usageLimit,
+      is_active: couponForm.is_active,
+      expires_at: couponForm.expires_at
+        ? new Date(couponForm.expires_at).toISOString()
+        : null,
+    };
+
+    try {
+      setSavingCoupon(true);
+
+      if (editingCouponId) {
+        await updateCoupon(editingCouponId, payload);
+      } else {
+        await addCoupon(payload);
+      }
+
+      await loadCoupons();
+      cancelEditCoupon();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to save coupon");
+    } finally {
+      setSavingCoupon(false);
+    }
+  }
+
+  async function handleCouponToggle(coupon) {
+    try {
+      await updateCoupon(coupon.id, {
+        is_active: !coupon.is_active,
+      });
+      await loadCoupons();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update coupon");
+    }
+  }
+
+  async function handleCouponDelete(couponId) {
+    const confirmed = window.confirm(
+      "Delete this coupon permanently? Existing orders will keep their saved discount."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteCoupon(couponId);
+      await loadCoupons();
+
+      if (editingCouponId === couponId) {
+        cancelEditCoupon();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete coupon");
     }
   }
 
@@ -159,17 +729,22 @@ export default function AdminDashboard() {
     <main className={styles.page}>
       <header className={styles.topbar}>
         <div>
-          <h1>uniqare Admin Dashboard</h1>
-          <p>Manage products, stock, and orders</p>
+          <h1>UNIQARE Admin Dashboard</h1>
+          <p>Manage products, orders, coupons, reviews, and stock</p>
         </div>
 
-        <button className={styles.logoutButton} onClick={logout}>
+        <button
+          type="button"
+          className={styles.logoutButton}
+          onClick={logout}
+        >
           Logout
         </button>
       </header>
 
       <div className={styles.tabs}>
         <button
+          type="button"
           className={activeTab === "products" ? styles.activeTab : ""}
           onClick={() => setActiveTab("products")}
         >
@@ -177,10 +752,27 @@ export default function AdminDashboard() {
         </button>
 
         <button
+          type="button"
           className={activeTab === "orders" ? styles.activeTab : ""}
           onClick={() => setActiveTab("orders")}
         >
           Orders
+        </button>
+
+        <button
+          type="button"
+          className={activeTab === "coupons" ? styles.activeTab : ""}
+          onClick={() => setActiveTab("coupons")}
+        >
+          Coupons
+        </button>
+
+        <button
+          type="button"
+          className={activeTab === "reviews" ? styles.activeTab : ""}
+          onClick={() => setActiveTab("reviews")}
+        >
+          Reviews
         </button>
       </div>
 
@@ -200,6 +792,8 @@ export default function AdminDashboard() {
               <input
                 name="price"
                 type="number"
+                min="0"
+                step="0.01"
                 value={productForm.price}
                 onChange={handleProductChange}
                 placeholder="Price"
@@ -208,6 +802,8 @@ export default function AdminDashboard() {
               <input
                 name="stock"
                 type="number"
+                min="0"
+                step="1"
                 value={productForm.stock}
                 onChange={handleProductChange}
                 placeholder="Stock quantity"
@@ -245,11 +841,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   className={styles.cancelButton}
-                  onClick={() => {
-                    setEditingId(null);
-                    setProductForm(emptyProductForm);
-                    setImageInputKey(Date.now());
-                  }}
+                  onClick={cancelEditProduct}
                 >
                   Cancel
                 </button>
@@ -264,7 +856,9 @@ export default function AdminDashboard() {
               <p className={styles.emptyText}>No products found.</p>
             ) : (
               products.map((product) => {
-                const isSoldOut = Number(product.stock) <= 0;
+                const isSoldOut =
+                  Number(product.stock || 0) <= 0 ||
+                  product.is_active === false;
 
                 return (
                   <article className={styles.adminProductCard} key={product.id}>
@@ -288,8 +882,12 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className={styles.cardActions}>
-                      <button onClick={() => startEdit(product)}>Edit</button>
+                      <button type="button" onClick={() => startEdit(product)}>
+                        Edit
+                      </button>
+
                       <button
+                        type="button"
                         className={styles.deleteButton}
                         onClick={() => handleDelete(product.id)}
                       >
@@ -308,45 +906,639 @@ export default function AdminDashboard() {
         <section className={styles.section}>
           <h2>Orders</h2>
 
+          {editingOrderId && (
+            <form className={styles.productForm} onSubmit={handleOrderUpdate}>
+              <h2>Edit Order #{editingOrderId}</h2>
+
+              <div className={styles.formGrid}>
+                <input
+                  name="customer_name"
+                  value={orderForm.customer_name}
+                  onChange={handleOrderFormChange}
+                  placeholder="Customer name"
+                />
+
+                <input
+                  name="phone"
+                  value={orderForm.phone}
+                  onChange={handleOrderFormChange}
+                  placeholder="Phone"
+                />
+
+                <input
+                  name="email"
+                  value={orderForm.email}
+                  onChange={handleOrderFormChange}
+                  placeholder="Email"
+                />
+
+                <input
+                  name="governorate"
+                  value={orderForm.governorate}
+                  onChange={handleOrderFormChange}
+                  placeholder="Governorate"
+                />
+
+                <select
+                  name="status"
+                  value={orderForm.status}
+                  onChange={handleOrderFormChange}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+
+                <select
+                  name="payment_method"
+                  value={orderForm.payment_method}
+                  onChange={handleOrderFormChange}
+                >
+                  <option value="">Payment Method</option>
+                  <option value="Cash on Delivery">Cash on Delivery</option>
+                  <option value="InstaPay">InstaPay</option>
+                  <option value="Vodafone Cash">Vodafone Cash</option>
+                  <option value="Not selected yet">Not selected yet</option>
+                </select>
+              </div>
+
+              <textarea
+                name="address"
+                value={orderForm.address}
+                onChange={handleOrderFormChange}
+                placeholder="Address"
+              />
+
+              <textarea
+                name="note"
+                value={orderForm.note}
+                onChange={handleOrderFormChange}
+                placeholder="Customer note"
+              />
+
+              <textarea
+                name="payment_status"
+                value={orderForm.payment_status}
+                onChange={handleOrderFormChange}
+                placeholder="Payment status"
+              />
+
+              <textarea
+                name="payment_details"
+                value={orderForm.payment_details}
+                onChange={handleOrderFormChange}
+                placeholder="Payment details"
+              />
+
+              <div className={styles.orderEditor}>
+                <div className={styles.orderEditorHeader}>
+                  <div>
+                    <h3>Order Products</h3>
+                    <p>
+                      Change quantities, remove products, or add a new product.
+                    </p>
+                  </div>
+
+                  {orderForm.coupon_code && (
+                    <span className={styles.couponBadge}>
+                      Coupon: {orderForm.coupon_code}
+                    </span>
+                  )}
+                </div>
+
+                {orderForm.items.length === 0 ? (
+                  <p className={styles.emptyText}>
+                    Add at least one product before saving.
+                  </p>
+                ) : (
+                  <div className={styles.editOrderItems}>
+                    {orderForm.items.map((item, index) => {
+                      const product = getProductById(item.product_id);
+                      const image =
+                        item.product_image ||
+                        product?.image_url ||
+                        product?.image ||
+                        "";
+
+                      return (
+                        <div
+                          className={styles.editOrderItem}
+                          key={`${item.product_id}-${index}`}
+                        >
+                          {image && (
+                            <img
+                              src={image}
+                              alt={item.product_name || product?.name}
+                            />
+                          )}
+
+                          <div className={styles.editOrderItemInfo}>
+                            <strong>
+                              {item.product_name ||
+                                product?.name ||
+                                `Product #${item.product_id}`}
+                            </strong>
+
+                            <span>
+                              Unit price:{" "}
+                              {Number(
+                                item.unit_price || product?.price || 0
+                              )}{" "}
+                              EGP
+                            </span>
+
+                            <span>
+                              Current store stock:{" "}
+                              {Number(product?.stock || 0)}
+                            </span>
+                          </div>
+
+                          <div className={styles.quantityEditor}>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                changeOrderItemQuantity(
+                                  index,
+                                  Number(item.quantity) - 1
+                                )
+                              }
+                            >
+                              −
+                            </button>
+
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={item.quantity}
+                              onChange={(event) =>
+                                changeOrderItemQuantity(
+                                  index,
+                                  event.target.value
+                                )
+                              }
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                changeOrderItemQuantity(
+                                  index,
+                                  Number(item.quantity) + 1
+                                )
+                              }
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <strong>
+                            {Number(
+                              (
+                                Number(
+                                  item.unit_price || product?.price || 0
+                                ) * Number(item.quantity || 0)
+                              ).toFixed(2)
+                            )}{" "}
+                            EGP
+                          </strong>
+
+                          <button
+                            type="button"
+                            className={styles.removeItemButton}
+                            onClick={() => removeOrderItem(index)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className={styles.addOrderProduct}>
+                  <select
+                    value={newOrderProductId}
+                    onChange={(event) =>
+                      setNewOrderProductId(event.target.value)
+                    }
+                  >
+                    <option value="">Select product to add</option>
+
+                    {products.map((product) => {
+                      const unavailable =
+                        Number(product.stock || 0) <= 0 ||
+                        product.is_active === false;
+
+                      return (
+                        <option
+                          key={product.id}
+                          value={product.id}
+                          disabled={unavailable}
+                        >
+                          {product.name} — {product.price} EGP — Stock:{" "}
+                          {product.stock}
+                        </option>
+                      );
+                    })}
+                  </select>
+
+                  <button
+                    type="button"
+                    className={styles.primaryButton}
+                    onClick={addProductToOrder}
+                  >
+                    Add Product
+                  </button>
+                </div>
+
+                <div className={styles.orderPreview}>
+                  <span>
+                    Subtotal: <strong>{orderPreview.subtotal} EGP</strong>
+                  </span>
+
+                  <span>
+                    Discount: <strong>{orderPreview.discount} EGP</strong>
+                  </span>
+
+                  <span>
+                    New total: <strong>{orderPreview.total} EGP</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button className={styles.primaryButton} type="submit">
+                  Save Order Changes
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={cancelEditOrder}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
           {loadingOrders ? (
             <p>Loading orders...</p>
           ) : orders.length === 0 ? (
             <p className={styles.emptyText}>No orders yet.</p>
           ) : (
             <div className={styles.ordersList}>
-              {orders.map((order) => (
-                <article className={styles.orderCard} key={order.id}>
-                  <div className={styles.orderMain}>
-                    {order.productImage && (
-                      <img src={order.productImage} alt={order.productName} />
-                    )}
+              {orders.map((order) => {
+                const orderItems = getOrderItems(order);
+                const orderImage = getOrderImage(order);
 
-                    <div>
-                      <h3>{order.productName}</h3>
-                      <p><strong>Customer:</strong> {order.customerName}</p>
-                      <p><strong>Phone:</strong> {order.phone}</p>
-                      <p><strong>Email:</strong> {order.email}</p>
-                      <p><strong>Governorate:</strong> {order.governorate}</p>
-                      <p><strong>Address:</strong> {order.address}</p>
-                      <p><strong>Total:</strong> {order.finalPrice} EGP</p>
-                      <p><strong>Date:</strong> {order.createdAt}</p>
+                return (
+                  <article className={styles.orderCard} key={order.id}>
+                    <div className={styles.orderTop}>
+                      <div>
+                        <h3>Order #{order.id}</h3>
+                        <p>{getOrderProductTitle(order)}</p>
+                      </div>
+
+                      <span className={styles.orderStatus}>
+                        {order.status || "pending"}
+                      </span>
                     </div>
-                  </div>
 
-                  <label className={styles.shippingCheck}>
-                    <input
-                      type="checkbox"
-                      checked={order.shipped}
-                      onChange={(event) =>
-                        handleShippingChange(order.id, event.target.checked)
-                      }
-                    />
-                    Delivered to shipping company
-                  </label>
-                </article>
-              ))}
+                    <div className={styles.orderMain}>
+                      {orderImage && (
+                        <img
+                          src={orderImage}
+                          alt={getOrderProductTitle(order)}
+                        />
+                      )}
+
+                      <div className={styles.orderDetailsGrid}>
+                        <div>
+                          <h4>Customer Data</h4>
+                          <p><strong>Name:</strong> {getCustomerName(order)}</p>
+                          <p><strong>Phone:</strong> {order.phone || "-"}</p>
+                          <p><strong>Email:</strong> {order.email || "-"}</p>
+                          <p>
+                            <strong>Governorate:</strong>{" "}
+                            {order.governorate || "-"}
+                          </p>
+                          <p><strong>Address:</strong> {order.address || "-"}</p>
+                          <p><strong>Note:</strong> {order.note || "-"}</p>
+                        </div>
+
+                        <div>
+                          <h4>Payment Data</h4>
+                          <p>
+                            <strong>Method:</strong>{" "}
+                            {order.payment_method || "Not selected"}
+                          </p>
+                          <p>
+                            <strong>Status:</strong>{" "}
+                            {order.payment_status || "-"}
+                          </p>
+                          <p>
+                            <strong>Details:</strong>{" "}
+                            {order.payment_details || "-"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <h4>Price Data</h4>
+                          <p>
+                            <strong>Subtotal:</strong>{" "}
+                            {Number(order.subtotal_price || 0)} EGP
+                          </p>
+                          <p>
+                            <strong>Coupon:</strong>{" "}
+                            {order.coupon_code || "-"}
+                          </p>
+                          <p>
+                            <strong>Discount:</strong>{" "}
+                            {Number(order.discount_amount || 0)} EGP
+                          </p>
+                          <p>
+                            <strong>Total:</strong>{" "}
+                            {getOrderTotal(order)} EGP
+                          </p>
+                          <p>
+                            <strong>Date:</strong>{" "}
+                            {formatDate(order.created_at || order.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.orderItemsBox}>
+                      <h4>Products</h4>
+
+                      {orderItems.length === 0 ? (
+                        <p>No products found in this order.</p>
+                      ) : (
+                        orderItems.map((item) => (
+                          <div className={styles.orderItemRow} key={item.id}>
+                            <span>
+                              {item.product_name ||
+                                item.product?.name ||
+                                item.name ||
+                                `Product #${item.product_id}`}
+                            </span>
+                            <span>Qty: {item.quantity}</span>
+                            <span>
+                              Unit: {Number(item.unit_price || 0)} EGP
+                            </span>
+                            <strong>
+                              Total: {Number(item.total_price || 0)} EGP
+                            </strong>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className={styles.orderActions}>
+                      <select
+                        value={order.status || "pending"}
+                        onChange={(event) =>
+                          handleOrderStatusChange(order.id, event.target.value)
+                        }
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+
+                      <button
+                        type="button"
+                        onClick={() => startEditOrder(order)}
+                      >
+                        Edit Order & Products
+                      </button>
+
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() => handleOrderDelete(order.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
+        </section>
+      )}
+
+      {activeTab === "coupons" && (
+        <section className={styles.section}>
+          <form className={styles.productForm} onSubmit={handleCouponSubmit}>
+            <h2>
+              {editingCouponId ? "Edit Coupon" : "Create New Coupon"}
+            </h2>
+
+            <div className={styles.formGrid}>
+              <input
+                name="code"
+                value={couponForm.code}
+                onChange={handleCouponChange}
+                placeholder="Coupon code, e.g. SAVE20"
+              />
+
+              <select
+                name="discount_type"
+                value={couponForm.discount_type}
+                onChange={handleCouponChange}
+              >
+                <option value="percent">Percentage</option>
+                <option value="fixed">Fixed amount</option>
+              </select>
+
+              <input
+                name="discount_value"
+                type="number"
+                min="0.01"
+                max={
+                  couponForm.discount_type === "percent"
+                    ? "100"
+                    : undefined
+                }
+                step="0.01"
+                value={couponForm.discount_value}
+                onChange={handleCouponChange}
+                placeholder={
+                  couponForm.discount_type === "percent"
+                    ? "Discount percentage"
+                    : "Discount amount"
+                }
+              />
+
+              <input
+                name="min_order_amount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={couponForm.min_order_amount}
+                onChange={handleCouponChange}
+                placeholder="Minimum order amount"
+              />
+
+              <input
+                name="usage_limit"
+                type="number"
+                min="1"
+                step="1"
+                value={couponForm.usage_limit}
+                onChange={handleCouponChange}
+                placeholder="Usage limit (optional)"
+              />
+
+              <input
+                name="expires_at"
+                type="datetime-local"
+                value={couponForm.expires_at}
+                onChange={handleCouponChange}
+              />
+
+              <label className={styles.checkboxField}>
+                <input
+                  name="is_active"
+                  type="checkbox"
+                  checked={couponForm.is_active}
+                  onChange={handleCouponChange}
+                />
+                Active
+              </label>
+            </div>
+
+            <div className={styles.formActions}>
+              <button
+                className={styles.primaryButton}
+                type="submit"
+                disabled={savingCoupon}
+              >
+                {savingCoupon
+                  ? "Saving..."
+                  : editingCouponId
+                    ? "Update Coupon"
+                    : "Create Coupon"}
+              </button>
+
+              {editingCouponId && (
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={cancelEditCoupon}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+
+          {loadingCoupons ? (
+            <p>Loading coupons...</p>
+          ) : coupons.length === 0 ? (
+            <p className={styles.emptyText}>No coupons created yet.</p>
+          ) : (
+            <div className={styles.couponsList}>
+              {coupons.map((coupon) => {
+                const expired =
+                  coupon.expires_at &&
+                  new Date(coupon.expires_at).getTime() < Date.now();
+
+                return (
+                  <article className={styles.couponCard} key={coupon.id}>
+                    <div className={styles.couponTop}>
+                      <div>
+                        <h3>{coupon.code}</h3>
+                        <p>
+                          {coupon.discount_type === "percent"
+                            ? `${coupon.discount_value}% discount`
+                            : `${coupon.discount_value} EGP discount`}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`${styles.statusBadge} ${
+                          coupon.is_active && !expired
+                            ? styles.available
+                            : styles.soldOut
+                        }`}
+                      >
+                        {expired
+                          ? "Expired"
+                          : coupon.is_active
+                            ? "Active"
+                            : "Inactive"}
+                      </span>
+                    </div>
+
+                    <div className={styles.couponDetails}>
+                      <span>
+                        Minimum order:{" "}
+                        <strong>{coupon.min_order_amount || 0} EGP</strong>
+                      </span>
+
+                      <span>
+                        Used:{" "}
+                        <strong>
+                          {coupon.used_count || 0}
+                          {coupon.usage_limit
+                            ? ` / ${coupon.usage_limit}`
+                            : ""}
+                        </strong>
+                      </span>
+
+                      <span>
+                        Expires:{" "}
+                        <strong>
+                          {coupon.expires_at
+                            ? formatDate(coupon.expires_at)
+                            : "No expiry"}
+                        </strong>
+                      </span>
+                    </div>
+
+                    <div className={styles.cardActions}>
+                      <button
+                        type="button"
+                        onClick={() => startEditCoupon(coupon)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleCouponToggle(coupon)}
+                      >
+                        {coupon.is_active ? "Disable" : "Activate"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() => handleCouponDelete(coupon.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "reviews" && (
+        <section className={styles.section}>
+          <ReviewsPage />
         </section>
       )}
     </main>

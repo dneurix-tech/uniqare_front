@@ -5,11 +5,13 @@ const API_URL = "https://uniqare-production.up.railway.app";
 ========================= */
 
 function normalizeProduct(product) {
+  if (!product) return null;
+
   return {
     ...product,
 
-    image: product.image_url,
-    image_url: product.image_url,
+    image: product.image_url || product.image || "",
+    image_url: product.image_url || product.image || "",
 
     short_description:
       product.short_description || product.description || "",
@@ -18,33 +20,88 @@ function normalizeProduct(product) {
       product.long_description ||
       product.short_description ||
       product.description ||
+      product.details ||
       "",
 
-    // Compatibility عشان أي كود قديم لسه بيستخدم description/details
     description:
-      product.short_description || product.description || "",
-
-    details:
-      product.long_description ||
       product.short_description ||
       product.description ||
       "",
 
+    details:
+      product.long_description ||
+      product.details ||
+      product.short_description ||
+      product.description ||
+      "",
+
+    price: Number(product.price || 0),
     stock: Number(product.stock || 0),
     is_active: product.is_active,
   };
 }
 
 function normalizeOrder(order, product = null) {
+  if (!order) return null;
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  const firstItem = items[0] || null;
+
   return {
     ...order,
-    customerName: order.customer_name,
-    createdAt: order.created_at,
-    finalPrice: order.total_price,
-    productName: product?.name || `Product #${order.product_id}`,
-    productImage: product?.image_url || product?.image || "",
+
+    items,
+
+    customerName: order.customer_name || order.customerName || "",
+    createdAt: order.created_at || order.createdAt || "",
+    finalPrice: Number(order.total_price || order.finalPrice || 0),
+
+    productName:
+      firstItem?.product_name ||
+      firstItem?.name ||
+      firstItem?.product?.name ||
+      product?.name ||
+      order.productName ||
+      `Order #${order.id}`,
+
+    productImage:
+      firstItem?.product_image ||
+      firstItem?.image ||
+      firstItem?.product?.image_url ||
+      firstItem?.product?.image ||
+      product?.image_url ||
+      product?.image ||
+      order.productImage ||
+      "",
+
     shipped: order.status === "shipped",
   };
+}
+
+function createReviewFormData(reviewData) {
+  const formData = new FormData();
+
+  if (reviewData.customer_name !== undefined) {
+    formData.append("customer_name", reviewData.customer_name || "");
+  }
+
+  if (reviewData.description !== undefined) {
+    formData.append("description", reviewData.description || "");
+  }
+
+  if (reviewData.rating !== undefined) {
+    formData.append("rating", reviewData.rating || 5);
+  }
+
+  if (reviewData.is_active !== undefined) {
+    formData.append("is_active", reviewData.is_active ? "true" : "false");
+  }
+
+  if (reviewData.image) {
+    formData.append("image", reviewData.image);
+  }
+
+  return formData;
 }
 
 /* =========================
@@ -59,7 +116,10 @@ export async function getProducts() {
   }
 
   const products = await response.json();
-  return Array.isArray(products) ? products.map(normalizeProduct) : [];
+
+  return Array.isArray(products)
+    ? products.map(normalizeProduct).filter(Boolean)
+    : [];
 }
 
 export async function getAdminProducts() {
@@ -70,7 +130,10 @@ export async function getAdminProducts() {
   }
 
   const products = await response.json();
-  return Array.isArray(products) ? products.map(normalizeProduct) : [];
+
+  return Array.isArray(products)
+    ? products.map(normalizeProduct).filter(Boolean)
+    : [];
 }
 
 export async function getProductById(id) {
@@ -81,6 +144,7 @@ export async function getProductById(id) {
   }
 
   const product = await response.json();
+
   return normalizeProduct(product);
 }
 
@@ -102,7 +166,7 @@ export async function addProduct(product) {
   formData.append("price", product.price);
   formData.append("category", product.category || "");
   formData.append("stock", product.stock);
-  formData.append("is_active", true);
+  formData.append("is_active", "true");
 
   if (product.image) {
     formData.append("image", product.image);
@@ -120,6 +184,7 @@ export async function addProduct(product) {
   }
 
   const newProduct = await response.json();
+
   return normalizeProduct(newProduct);
 }
 
@@ -163,7 +228,7 @@ export async function updateProduct(id, product) {
   }
 
   if (product.is_active !== undefined) {
-    formData.append("is_active", product.is_active);
+    formData.append("is_active", product.is_active ? "true" : "false");
   }
 
   if (product.image) {
@@ -182,6 +247,7 @@ export async function updateProduct(id, product) {
   }
 
   const updatedProduct = await response.json();
+
   return normalizeProduct(updatedProduct);
 }
 
@@ -191,10 +257,12 @@ export async function deleteProduct(id) {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Delete product API error:", errorText);
     throw new Error("Failed to delete product");
   }
 
-  return await response.json();
+  return response.json();
 }
 
 /* =========================
@@ -214,19 +282,9 @@ export async function getOrders() {
     return [];
   }
 
-  const normalizedOrders = await Promise.all(
-    orders.map(async (order) => {
-      try {
-        const product = await getProductById(order.product_id);
-        return normalizeOrder(order, product);
-      } catch {
-        return normalizeOrder(order, null);
-      }
-    })
-  );
-
-  return normalizedOrders;
+  return orders.map((order) => normalizeOrder(order, null)).filter(Boolean);
 }
+
 export async function addOrder(order) {
   const items =
     Array.isArray(order.items) && order.items.length > 0
@@ -285,12 +343,157 @@ export async function addOrder(order) {
   }
 
   const newOrder = await response.json();
-  return normalizeOrder(newOrder);
+
+  return normalizeOrder(newOrder, null);
+}
+
+export async function updateOrderDetails(orderId, orderData) {
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(orderData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to update order");
+  }
+
+  const updatedOrder = await response.json();
+
+  return normalizeOrder(updatedOrder, null);
+}
+
+export async function deleteOrder(orderId) {
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to delete order");
+  }
+
+  return response.json();
+}
+
+export async function updateOrderPayment(orderId, paymentData) {
+  const response = await fetch(`${API_URL}/orders/${orderId}/payment`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      payment_method:
+        paymentData.paymentMethod || paymentData.payment_method || "",
+      payment_status:
+        paymentData.paymentStatus || paymentData.payment_status || "",
+      payment_details:
+        paymentData.paymentDetails || paymentData.payment_details || "",
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Update payment API error:", errorText);
+    throw new Error("Failed to update payment details");
+  }
+
+  const updatedOrder = await response.json();
+
+  return normalizeOrder(updatedOrder, null);
+}
+
+export async function updateOrderShippingStatus(orderId, shipped) {
+  const status = shipped ? "shipped" : "pending";
+
+  const response = await fetch(
+    `${API_URL}/orders/${orderId}/status?status=${status}`,
+    {
+      method: "PATCH",
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Update order shipping API error:", errorText);
+    throw new Error("Failed to update order status");
+  }
+
+  const updatedOrder = await response.json();
+
+  return normalizeOrder(updatedOrder, null);
 }
 
 /* =========================
    Coupons
 ========================= */
+
+
+export async function getAdminCoupons() {
+  const response = await fetch(`${API_URL}/coupons/admin/all`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to load coupons");
+  }
+
+  const coupons = await response.json();
+
+  return Array.isArray(coupons) ? coupons : [];
+}
+
+export async function addCoupon(couponData) {
+  const response = await fetch(`${API_URL}/coupons/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(couponData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to add coupon");
+  }
+
+  return response.json();
+}
+
+export async function updateCoupon(couponId, couponData) {
+  const response = await fetch(`${API_URL}/coupons/${couponId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(couponData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to update coupon");
+  }
+
+  return response.json();
+}
+
+export async function deleteCoupon(couponId) {
+  const response = await fetch(`${API_URL}/coupons/${couponId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to delete coupon");
+  }
+
+  return response.json();
+}
 
 export async function checkCoupon({ product_id, quantity, coupon_code, items }) {
   const payload = {
@@ -325,10 +528,92 @@ export async function checkCoupon({ product_id, quantity, coupon_code, items }) 
     throw new Error("Invalid coupon");
   }
 
-  return await response.json();
+  return response.json();
 }
+
 /* =========================
-   Old compatibility - no localStorage now
+   Reviews
+========================= */
+export async function getPublicReviews() {
+  const response = await fetch(`${API_URL}/reviews/`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    console.error("Get public reviews API error:", errorText);
+
+    throw new Error(
+      `Failed to load reviews. Status: ${response.status}`
+    );
+  }
+
+  const reviews = await response.json();
+
+  return Array.isArray(reviews) ? reviews : [];
+}
+
+export async function getAdminReviews() {
+  const response = await fetch(`${API_URL}/reviews/admin/all`);
+
+  if (!response.ok) {
+    throw new Error("Failed to load admin reviews");
+  }
+
+  const reviews = await response.json();
+
+  return Array.isArray(reviews) ? reviews : [];
+}
+
+export async function addReview(reviewData) {
+  const formData = createReviewFormData(reviewData);
+
+  const response = await fetch(`${API_URL}/reviews/`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to add review");
+  }
+
+  return response.json();
+}
+
+export async function updateReview(reviewId, reviewData) {
+  const formData = createReviewFormData(reviewData);
+
+  const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    method: "PATCH",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to update review");
+  }
+
+  return response.json();
+}
+
+export async function deleteReview(reviewId) {
+  const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.detail || "Failed to delete review");
+  }
+
+  return response.json();
+}
+
+/* =========================
+   Old compatibility
 ========================= */
 
 export function saveProducts() {
@@ -337,41 +622,4 @@ export function saveProducts() {
 
 export function saveOrders() {
   return null;
-}
-export async function updateOrderPayment(orderId, paymentData) {
-  const response = await fetch(`${API_URL}/orders/${orderId}/payment`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      payment_method: paymentData.paymentMethod,
-      payment_status: paymentData.paymentStatus,
-      payment_details: paymentData.paymentDetails || "",
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update payment details");
-  }
-
-  return await response.json();
-}
-export async function updateOrderShippingStatus(orderId, shipped) {
-  const status = shipped ? "shipped" : "pending";
-
-  const response = await fetch(
-    `${API_URL}/orders/${orderId}/status?status=${status}`,
-    {
-      method: "PATCH",
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Update order shipping API error:", errorText);
-    throw new Error("Failed to update order status");
-  }
-
-  return await response.json();
 }

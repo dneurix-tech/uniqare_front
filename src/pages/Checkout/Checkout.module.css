@@ -594,3 +594,18 @@
     height: 70px;
   }
 }
+.oldPrice {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.discountNotice {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #ecfdf3;
+  color: #067647;
+  font-weight: 800;
+  line-height: 1.6;
+}

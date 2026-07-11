@@ -8,12 +8,21 @@
   box-shadow: 0 8px 24px rgba(137, 32, 71, 0.08);
 }
 
+.headerContent {
+  width: min(1150px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
 .brand {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   transition: transform 0.2s ease;
+  text-decoration: none;
 }
 
 .brand:hover {
@@ -50,6 +59,36 @@
   text-transform: uppercase;
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.navLink {
+  text-decoration: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  color: #892047;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(137, 32, 71, 0.14);
+  font-size: 14px;
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+.navLink:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.active {
+  background: #892047;
+  color: #ffffff;
+}
+
 @media (max-width: 600px) {
   .logoCircle {
     width: 70px;
@@ -58,5 +97,10 @@
 
   .brandName {
     font-size: 27px;
+  }
+
+  .navLink {
+    padding: 8px 15px;
+    font-size: 13px;
   }
 }

@@ -23,6 +23,9 @@ const INSTAPAY_USERNAME = "ghanoum99ahly";
 const INSTAPAY_LINK = "https://ipn.eg/S/ghanoum99ahly/instapay/7bOUri";
 const VODAFONE_CASH_NUMBER = "01095285287";
 
+const CART_DISCOUNT_THRESHOLD = 1000;
+const CART_DISCOUNT_PERCENT = 0.10;
+
 export default function Checkout() {
   const { id } = useParams();
 
@@ -40,8 +43,7 @@ export default function Checkout() {
   });
 
   const [errors, setErrors] = useState({});
-  const [discount, setDiscount] = useState(0);
-  const [finalPrice, setFinalPrice] = useState(0);
+  const [couponDiscount, setCouponDiscount] = useState(0);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -76,6 +78,18 @@ export default function Checkout() {
         item.is_active !== false
     );
 
+  const cartDiscount =
+    subtotalPrice > CART_DISCOUNT_THRESHOLD && !hasInvalidQuantity
+      ? Number((subtotalPrice * CART_DISCOUNT_PERCENT).toFixed(2))
+      : 0;
+
+  const totalDiscount = Math.min(
+    subtotalPrice,
+    Number((couponDiscount + cartDiscount).toFixed(2))
+  );
+
+  const payablePrice = Number((subtotalPrice - totalDiscount).toFixed(2));
+
   useEffect(() => {
     async function loadCheckoutItems() {
       try {
@@ -97,22 +111,13 @@ export default function Checkout() {
           };
 
           setCartItems([singleItem]);
-          setFinalPrice(Number(product.price));
         } else {
           const cart = getCartItems();
-
           setCartItems(cart);
-
-          const subtotal = cart.reduce((sum, item) => {
-            return sum + Number(item.price) * Number(item.quantity || 0);
-          }, 0);
-
-          setFinalPrice(subtotal);
         }
       } catch (err) {
         console.error(err);
         setCartItems([]);
-        setFinalPrice(0);
       } finally {
         setLoading(false);
       }
@@ -138,8 +143,7 @@ export default function Checkout() {
     setForm((prev) => ({ ...prev, [name]: value }));
 
     if (name === "coupon") {
-      setDiscount(0);
-      setFinalPrice(subtotalPrice);
+      setCouponDiscount(0);
       setMessage("");
     }
   }
@@ -162,12 +166,7 @@ export default function Checkout() {
       saveCartItems(updatedItems);
     }
 
-    const updatedSubtotal = updatedItems.reduce((sum, item) => {
-      return sum + Number(item.price) * Number(item.quantity || 0);
-    }, 0);
-
-    setDiscount(0);
-    setFinalPrice(updatedSubtotal);
+    setCouponDiscount(0);
 
     setForm((prev) => ({
       ...prev,
@@ -187,12 +186,7 @@ export default function Checkout() {
       saveCartItems(updatedItems);
     }
 
-    const updatedSubtotal = updatedItems.reduce((sum, item) => {
-      return sum + Number(item.price) * Number(item.quantity || 0);
-    }, 0);
-
-    setDiscount(0);
-    setFinalPrice(updatedSubtotal);
+    setCouponDiscount(0);
 
     setForm((prev) => ({
       ...prev,
@@ -269,13 +263,11 @@ export default function Checkout() {
         })),
       });
 
-      setDiscount(result.discount_amount);
-      setFinalPrice(result.total_price);
+      setCouponDiscount(Number(result.discount_amount || 0));
       setMessage("Coupon applied successfully");
     } catch (err) {
       console.error(err);
-      setDiscount(0);
-      setFinalPrice(subtotalPrice);
+      setCouponDiscount(0);
       setMessage("Invalid coupon");
     }
   }
@@ -430,7 +422,16 @@ export default function Checkout() {
       }
 
       setCartItems([]);
-      setMessage(`تم تأكيد الطلب بنجاح - ${getPaymentLabel(selectedPayment)}`);
+
+      const savedDiscount = Number(createdOrder.discount_amount || 0);
+
+      if (savedDiscount > 0) {
+        setMessage(
+          `تم تأكيد الطلب بنجاح - تم تطبيق خصم بقيمة ${savedDiscount} EGP`
+        );
+      } else {
+        setMessage(`تم تأكيد الطلب بنجاح - ${getPaymentLabel(selectedPayment)}`);
+      }
 
       setForm({
         name: "",
@@ -445,8 +446,7 @@ export default function Checkout() {
       setSelectedPayment("");
       setPaymentNotice("");
       setPaymentError("");
-      setDiscount(0);
-      setFinalPrice(0);
+      setCouponDiscount(0);
       setErrors({});
     } catch (err) {
       console.error(err);
@@ -574,19 +574,37 @@ export default function Checkout() {
 
             <div className={styles.priceRow}>
               <span>Subtotal</span>
-              <strong>{subtotalPrice} EGP</strong>
+
+              {totalDiscount > 0 ? (
+                <strong className={styles.oldPrice}>{subtotalPrice} EGP</strong>
+              ) : (
+                <strong>{subtotalPrice} EGP</strong>
+              )}
             </div>
 
-            {discount > 0 && (
+            {cartDiscount > 0 && (
+              <>
+                <div className={styles.discountNotice}>
+                  تم تطبيق خصم 10% لأن قيمة الكارت تعدت 1000 جنيه
+                </div>
+
+                <div className={styles.priceRow}>
+                  <span>Cart Discount 10%</span>
+                  <strong>-{cartDiscount} EGP</strong>
+                </div>
+              </>
+            )}
+
+            {couponDiscount > 0 && (
               <div className={styles.priceRow}>
-                <span>Discount</span>
-                <strong>-{discount} EGP</strong>
+                <span>Coupon Discount</span>
+                <strong>-{couponDiscount} EGP</strong>
               </div>
             )}
 
             <div className={`${styles.priceRow} ${styles.total}`}>
               <span>Total</span>
-              <strong>{finalPrice} EGP</strong>
+              <strong>{payablePrice} EGP</strong>
             </div>
 
             <div className={styles.checkoutSteps}>

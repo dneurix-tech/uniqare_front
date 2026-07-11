@@ -34,6 +34,7 @@
 
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -80,7 +81,8 @@
 }
 
 .productForm input,
-.productForm textarea {
+.productForm textarea,
+.productForm select {
   width: 100%;
   border: 1px solid #e2cfc4;
   border-radius: 15px;
@@ -88,6 +90,13 @@
   outline: none;
   background: #fffdfb;
   margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.productForm input:focus,
+.productForm textarea:focus,
+.productForm select:focus {
+  border-color: var(--uniqare-primary);
 }
 
 .productForm textarea {
@@ -95,8 +104,28 @@
   resize: vertical;
 }
 
+.checkboxField {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid #e2cfc4;
+  border-radius: 15px;
+  background: #fffdfb;
+  font-weight: 800;
+  color: var(--uniqare-primary);
+  margin-bottom: 12px;
+}
+
+.checkboxField input {
+  width: auto;
+  margin: 0;
+}
+
 .formActions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -114,13 +143,19 @@
   color: #fff;
 }
 
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .cancelButton {
   background: #e5e5e5;
   color: #333;
 }
 
 .productsList,
-.ordersList {
+.ordersList,
+.couponsList {
   display: grid;
   gap: 16px;
 }
@@ -173,6 +208,7 @@
 
 .cardActions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -190,10 +226,45 @@
   background: var(--danger-text) !important;
 }
 
+.emptyText {
+  color: var(--uniqare-muted);
+}
+
+/* =========================
+   Orders
+========================= */
+
 .orderCard {
   border: 1px solid var(--uniqare-border);
   border-radius: 20px;
   padding: 16px;
+}
+
+.orderTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.orderTop h3 {
+  margin: 0 0 6px;
+}
+
+.orderTop p {
+  margin: 0;
+  color: #845f69;
+  font-weight: 700;
+}
+
+.orderStatus {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #ebc0ca;
+  color: #892047;
+  font-weight: 800;
+  text-transform: capitalize;
 }
 
 .orderMain {
@@ -210,32 +281,296 @@
   background: var(--uniqare-soft);
 }
 
-.orderMain h3 {
+.orderDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+.orderDetailsGrid h4,
+.orderItemsBox h4 {
   margin: 0 0 10px;
+  color: #892047;
+}
+
+.orderDetailsGrid p {
+  margin: 0 0 7px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.orderItemsBox {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff8fa;
+  border: 1px solid #f1d7de;
+}
+
+.orderItemRow {
+  display: grid;
+  grid-template-columns: 1.5fr 0.6fr 0.8fr 0.8fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1d7de;
+  color: #4b5563;
+}
+
+.orderItemRow:last-child {
+  border-bottom: none;
+}
+
+.orderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.orderActions select,
+.orderActions button {
+  border-radius: 999px;
+  padding: 10px 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.orderActions select {
+  background: #fff8fa;
+  color: #892047;
+  border: 1px solid #e6c4ca;
+}
+
+.orderActions button {
+  border: none;
+  background: #892047;
+  color: white;
+}
+
+/* Order product editor */
+
+.orderEditor {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid #f1d7de;
+  border-radius: 20px;
+  background: #fff8fa;
+}
+
+.orderEditorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.orderEditorHeader h3 {
+  margin: 0 0 5px;
   color: var(--uniqare-primary);
 }
 
-.orderMain p {
-  margin: 5px 0;
+.orderEditorHeader p {
+  margin: 0;
   color: var(--uniqare-muted);
 }
 
-.shippingCheck {
-  margin-top: 16px;
+.couponBadge {
+  display: inline-flex;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #ebc0ca;
+  color: #892047;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.editOrderItems {
+  display: grid;
+  gap: 12px;
+}
+
+.editOrderItem {
+  display: grid;
+  grid-template-columns: 64px minmax(180px, 1fr) auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #efd6dc;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.editOrderItem img {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--uniqare-soft);
+}
+
+.editOrderItemInfo {
+  display: grid;
+  gap: 5px;
+}
+
+.editOrderItemInfo strong {
+  color: var(--uniqare-primary);
+}
+
+.editOrderItemInfo span {
+  color: var(--uniqare-muted);
+  font-size: 13px;
+}
+
+.quantityEditor {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: var(--uniqare-primary);
+  gap: 6px;
+}
+
+.quantityEditor button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: var(--uniqare-primary);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.quantityEditor input {
+  width: 72px;
+  margin: 0;
+  padding: 8px;
+  text-align: center;
+}
+
+.removeItemButton {
+  border: none;
+  border-radius: 999px;
+  padding: 9px 13px;
+  background: var(--danger-text);
+  color: white;
   font-weight: 800;
+  cursor: pointer;
 }
 
-.emptyText {
+.addOrderProduct {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.addOrderProduct select {
+  margin: 0;
+}
+
+.orderPreview {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #efd6dc;
+  color: #4b5563;
+}
+
+.orderPreview strong {
+  color: var(--uniqare-primary);
+}
+
+/* =========================
+   Coupons
+========================= */
+
+.couponCard {
+  border: 1px solid var(--uniqare-border);
+  border-radius: 20px;
+  padding: 16px;
+  background: #fff;
+}
+
+.couponTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.couponTop h3 {
+  margin: 0 0 5px;
+  color: var(--uniqare-primary);
+  letter-spacing: 0.8px;
+}
+
+.couponTop p {
+  margin: 0;
   color: var(--uniqare-muted);
+  font-weight: 700;
 }
 
-@media (max-width: 900px) {
+.couponDetails {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff8fa;
+  color: #4b5563;
+}
+
+.couponDetails strong {
+  color: var(--uniqare-primary);
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 1000px) {
   .formGrid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .orderDetailsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .editOrderItem {
+    grid-template-columns: 64px 1fr auto;
+  }
+
+  .quantityEditor,
+  .editOrderItem > strong,
+  .removeItemButton {
+    grid-column: span 1;
+  }
+
+  .couponDetails {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section {
+    padding: 16px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
   }
 
   .adminProductCard {
@@ -245,19 +580,41 @@
   .cardActions {
     grid-column: 1 / -1;
   }
-}
-
-@media (max-width: 600px) {
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
 
   .orderMain {
     grid-template-columns: 1fr;
+  }
+
+  .orderItemRow {
+    grid-template-columns: 1fr;
+  }
+
+  .orderEditorHeader,
+  .couponTop {
+    flex-direction: column;
+  }
+
+  .editOrderItem {
+    grid-template-columns: 1fr;
+  }
+
+  .editOrderItem img {
+    width: 84px;
+    height: 84px;
+  }
+
+  .addOrderProduct {
+    grid-template-columns: 1fr;
+  }
+
+  .quantityEditor,
+  .editOrderItem > strong,
+  .removeItemButton {
+    grid-column: auto;
+  }
+
+  .orderPreview {
+    justify-content: flex-start;
+    flex-direction: column;
   }
 }

@@ -1,0 +1,113 @@
+.page {
+  padding: 30px;
+}
+
+.header h1 {
+  margin: 0 0 8px;
+  color: #892047;
+}
+
+.header p {
+  margin: 0 0 24px;
+  color: #845f69;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+  max-width: 600px;
+  margin-bottom: 35px;
+  padding: 20px;
+  background: #fff8fa;
+  border-radius: 18px;
+  border: 1px solid #f1d7de;
+}
+
+.form input,
+.form textarea,
+.form select {
+  width: 100%;
+  border: 1px solid #e6c4ca;
+  border-radius: 12px;
+  padding: 12px;
+  outline: none;
+}
+
+.form textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #892047;
+  font-weight: 700;
+}
+
+.form button {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: #892047;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.message {
+  color: #892047;
+  font-weight: 700;
+}
+
+.list {
+  display: grid;
+  gap: 16px;
+}
+
+.reviewCard {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #f1d7de;
+  border-radius: 18px;
+}
+
+.reviewCard img {
+  width: 110px;
+  height: 110px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.reviewCard h3 {
+  margin: 0 0 8px;
+  color: #892047;
+}
+
+.reviewCard p {
+  margin: 0 0 8px;
+  color: #845f69;
+}
+
+.reviewCard strong {
+  color: #892047;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.actions button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #ebc0ca;
+  color: #892047;
+  font-weight: 700;
+  cursor: pointer;
+}

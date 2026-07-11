@@ -1,48 +1,63 @@
 const CART_KEY = "uniqare_cart";
+export const CART_UPDATED_EVENT = "uniqare_cart_updated";
+
+function notifyCartUpdated() {
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+}
+
+function normalizeCartItem(product, quantity) {
+  return {
+    id: product.id,
+    product_id: product.id,
+    name: product.name,
+    description: product.description,
+    price: Number(product.price || 0),
+    image: product.image || product.image_url,
+    stock: Number(product.stock || 0),
+    is_active: product.is_active,
+    quantity: Number(quantity || 1),
+  };
+}
 
 export function getCartItems() {
-  const savedCart = localStorage.getItem(CART_KEY);
-  return savedCart ? JSON.parse(savedCart) : [];
+  try {
+    const cart = localStorage.getItem(CART_KEY);
+    return cart ? JSON.parse(cart) : [];
+  } catch {
+    return [];
+  }
 }
 
 export function saveCartItems(items) {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
+  notifyCartUpdated();
 }
 
 export function addToCart(product, quantity = 1) {
-  const cart = getCartItems();
-
   const stock = Number(product.stock || 0);
-  const requestedQuantity = Number(quantity);
-  const productId = product.id;
+  const selectedQuantity = Number(quantity || 1);
 
   if (stock <= 0 || product.is_active === false) {
     return {
       success: false,
-      message: "This product is Sold Out",
+      message: "This product is sold out",
     };
   }
 
-  if (requestedQuantity < 1) {
+  if (!Number.isInteger(selectedQuantity) || selectedQuantity < 1) {
     return {
       success: false,
       message: "Quantity must be at least 1",
     };
   }
 
-  if (requestedQuantity > stock) {
-    return {
-      success: false,
-      message: `Only ${stock} pieces available`,
-    };
-  }
-
-  const existingItem = cart.find((item) => item.id === productId);
+  const cart = getCartItems();
+  const existingItem = cart.find((item) => item.id === product.id);
 
   if (existingItem) {
-    const nextQuantity = Number(existingItem.quantity) + requestedQuantity;
+    const newQuantity = Number(existingItem.quantity || 0) + selectedQuantity;
 
-    if (nextQuantity > stock) {
+    if (newQuantity > stock) {
       return {
         success: false,
         message: `Only ${stock} pieces available`,
@@ -50,10 +65,14 @@ export function addToCart(product, quantity = 1) {
     }
 
     const updatedCart = cart.map((item) =>
-      item.id === productId
+      item.id === product.id
         ? {
             ...item,
-            quantity: nextQuantity,
+            quantity: newQuantity,
+            stock,
+            price: Number(product.price || item.price || 0),
+            image: product.image || product.image_url || item.image,
+            is_active: product.is_active,
           }
         : item
     );
@@ -62,30 +81,65 @@ export function addToCart(product, quantity = 1) {
 
     return {
       success: true,
-      message: "Product quantity updated in cart",
+      message: "Product added to cart successfully",
+      cart: updatedCart,
     };
   }
 
-  const newItem = {
-    id: product.id,
-    product_id: product.id,
-    name: product.name,
-    description: product.description,
-    price: Number(product.price),
-    image: product.image_url || product.image,
-    stock,
-    is_active: product.is_active,
-    quantity: requestedQuantity,
-  };
+  if (selectedQuantity > stock) {
+    return {
+      success: false,
+      message: `Only ${stock} pieces available`,
+    };
+  }
 
-  saveCartItems([...cart, newItem]);
+  const updatedCart = [...cart, normalizeCartItem(product, selectedQuantity)];
+
+  saveCartItems(updatedCart);
 
   return {
     success: true,
-    message: "Product added to cart",
+    message: "Product added to cart successfully",
+    cart: updatedCart,
   };
+}
+
+export function updateCartItemQuantity(productId, quantity) {
+  const selectedQuantity = Number(quantity);
+  const cart = getCartItems();
+
+  const updatedCart = cart
+    .map((item) => {
+      if (item.id !== productId) return item;
+
+      const stock = Number(item.stock || 0);
+
+      if (selectedQuantity > stock) {
+        return {
+          ...item,
+          quantity: stock,
+        };
+      }
+
+      return {
+        ...item,
+        quantity: selectedQuantity,
+      };
+    })
+    .filter((item) => Number(item.quantity) > 0);
+
+  saveCartItems(updatedCart);
+
+  return updatedCart;
+}
+
+export function removeFromCart(productId) {
+  const updatedCart = getCartItems().filter((item) => item.id !== productId);
+  saveCartItems(updatedCart);
+  return updatedCart;
 }
 
 export function clearCart() {
   localStorage.removeItem(CART_KEY);
+  notifyCartUpdated();
 }
