@@ -232,367 +232,254 @@ function logout() {
     }
   }
 
-/* =========================
-   Orders
-========================= */
+  /* =========================
+     Orders
+  ========================= */
 
-function getOrderItems(order) {
-  return Array.isArray(order.items) ? order.items : [];
-}
+  function getOrderItems(order) {
+    return Array.isArray(order.items) ? order.items : [];
+  }
 
-function getOrderProductTitle(order) {
-  const items = getOrderItems(order);
+  function getOrderProductTitle(order) {
+    const items = getOrderItems(order);
 
-  if (items.length === 0) {
+    if (items.length === 0) {
+      return (
+        order.productName ||
+        order.product_name ||
+        order.product?.name ||
+        "No products"
+      );
+    }
+
+    if (items.length === 1) {
+      const firstItem = items[0];
+
+      return (
+        firstItem.product_name ||
+        firstItem.product?.name ||
+        firstItem.name ||
+        `Product #${firstItem.product_id}`
+      );
+    }
+
+    return `${items.length} products`;
+  }
+
+  function getOrderImage(order) {
+    const firstItem = getOrderItems(order)[0];
+
     return (
-      order.productName ||
-      order.product_name ||
-      order.product?.name ||
-      "No products"
+      firstItem?.product_image ||
+      firstItem?.image ||
+      firstItem?.product?.image_url ||
+      firstItem?.product?.image ||
+      order.productImage ||
+      order.product_image ||
+      ""
     );
   }
 
-  if (items.length === 1) {
-    const firstItem = items[0];
+  function formatDate(value) {
+    if (!value) return "-";
 
-    return (
-      firstItem.product_name ||
-      firstItem.product?.name ||
-      firstItem.name ||
-      `Product #${firstItem.product_id}`
-    );
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleString();
   }
 
-  return `${items.length} products`;
-}
-
-function getOrderImage(order) {
-  const firstItem = getOrderItems(order)[0];
-
-  return (
-    firstItem?.product_image ||
-    firstItem?.image ||
-    firstItem?.product?.image_url ||
-    firstItem?.product?.image ||
-    order.productImage ||
-    order.product_image ||
-    ""
-  );
-}
-
-function formatDate(value) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
+  function getCustomerName(order) {
+    return order.customer_name || order.customerName || "-";
   }
 
-  return date.toLocaleString();
-}
-
-function getCustomerName(order) {
-  return order.customer_name || order.customerName || "-";
-}
-
-function getOrderTotal(order) {
-  return Number(
-    order.total_price ??
-      order.finalPrice ??
-      order.total ??
-      0
-  );
-}
-
-function getItemTotalAfterDiscount(order, item) {
-  const orderItems = getOrderItems(order);
-
-  const calculatedSubtotal = orderItems.reduce(
-    (sum, currentItem) => {
-      const unitPrice = Number(currentItem.unit_price ?? 0);
-      const quantity = Number(currentItem.quantity ?? 0);
-
-      return sum + unitPrice * quantity;
-    },
-    0
-  );
-
-  const orderSubtotal = Number(
-    order.subtotal_price ?? calculatedSubtotal
-  );
-
-  const finalOrderTotal = getOrderTotal(order);
-
-  const itemSubtotal =
-    Number(item.unit_price ?? 0) *
-    Number(item.quantity ?? 0);
-
-  if (orderSubtotal <= 0) {
-    return Number(itemSubtotal.toFixed(2));
+  function getOrderTotal(order) {
+    return Number(order.total_price || order.finalPrice || order.total || 0);
   }
-
-  const itemRatio = itemSubtotal / orderSubtotal;
-
-  const itemTotalAfterDiscount =
-    finalOrderTotal * itemRatio;
-
-  return Number(itemTotalAfterDiscount.toFixed(2));
-}
 
 const getProductById = useCallback(
   (productId) => {
     return products.find(
-      (product) =>
-        Number(product.id) === Number(productId)
+      (product) => Number(product.id) === Number(productId)
     );
   },
   [products]
 );
 
-function startEditOrder(order) {
-  const items = getOrderItems(order).map((item) => ({
-    id: item.id,
-    product_id: Number(item.product_id),
+  function startEditOrder(order) {
+    const items = getOrderItems(order).map((item) => ({
+      id: item.id,
+      product_id: Number(item.product_id),
+      product_name:
+        item.product_name ||
+        item.product?.name ||
+        item.name ||
+        `Product #${item.product_id}`,
+      product_image:
+        item.product_image ||
+        item.product?.image_url ||
+        item.image ||
+        "",
+      quantity: Number(item.quantity || 1),
+      unit_price: Number(item.unit_price || 0),
+    }));
 
-    product_name:
-      item.product_name ||
-      item.product?.name ||
-      item.name ||
-      `Product #${item.product_id}`,
+    setEditingOrderId(order.id);
 
-    product_image:
-      item.product_image ||
-      item.product?.image_url ||
-      item.image ||
-      "",
+    setOrderForm({
+      customer_name: order.customer_name || order.customerName || "",
+      phone: order.phone || "",
+      email: order.email || "",
+      governorate: order.governorate || "",
+      address: order.address || "",
+      note: order.note || "",
+      status: order.status || "pending",
+      payment_method: order.payment_method || "",
+      payment_status: order.payment_status || "",
+      payment_details: order.payment_details || "",
+      coupon_code: order.coupon_code || "",
+      coupon_discount_type: order.coupon_discount_type || "",
+      coupon_discount_value: Number(order.coupon_discount_value || 0),
+      items,
+    });
 
-    quantity: Number(item.quantity || 1),
-    unit_price: Number(item.unit_price || 0),
-  }));
-
-  setEditingOrderId(order.id);
-
-  setOrderForm({
-    customer_name:
-      order.customer_name ||
-      order.customerName ||
-      "",
-
-    phone: order.phone || "",
-    email: order.email || "",
-    governorate: order.governorate || "",
-    address: order.address || "",
-    note: order.note || "",
-    status: order.status || "pending",
-
-    payment_method:
-      order.payment_method || "",
-
-    payment_status:
-      order.payment_status || "",
-
-    payment_details:
-      order.payment_details || "",
-
-    coupon_code:
-      order.coupon_code || "",
-
-    coupon_discount_type:
-      order.coupon_discount_type || "",
-
-    coupon_discount_value: Number(
-      order.coupon_discount_value || 0
-    ),
-
-    items,
-  });
-
-  setNewOrderProductId("");
-  setActiveTab("orders");
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-}
-
-function cancelEditOrder() {
-  setEditingOrderId(null);
-  setOrderForm(emptyOrderForm);
-  setNewOrderProductId("");
-}
-
-function handleOrderFormChange(event) {
-  const { name, value } = event.target;
-
-  setOrderForm((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-}
-
-function changeOrderItemQuantity(index, nextQuantity) {
-  const quantity = Math.max(
-    1,
-    Number(nextQuantity) || 1
-  );
-
-  setOrderForm((prev) => ({
-    ...prev,
-
-    items: prev.items.map((item, itemIndex) =>
-      itemIndex === index
-        ? {
-            ...item,
-            quantity,
-          }
-        : item
-    ),
-  }));
-}
-
-function removeOrderItem(index) {
-  setOrderForm((prev) => ({
-    ...prev,
-
-    items: prev.items.filter(
-      (_, itemIndex) => itemIndex !== index
-    ),
-  }));
-}
-
-function addProductToOrder() {
-  const productId = Number(newOrderProductId);
-
-  if (!productId) {
-    alert("Please select a product");
-    return;
+    setNewOrderProductId("");
+    setActiveTab("orders");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const product = getProductById(productId);
-
-  if (!product) {
-    alert("Product not found");
-    return;
+  function cancelEditOrder() {
+    setEditingOrderId(null);
+    setOrderForm(emptyOrderForm);
+    setNewOrderProductId("");
   }
 
-  if (
-    Number(product.stock || 0) <= 0 ||
-    product.is_active === false
-  ) {
-    alert("This product is not currently available");
-    return;
+  function handleOrderFormChange(event) {
+    const { name, value } = event.target;
+
+    setOrderForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   }
 
-  setOrderForm((prev) => {
-    const existingIndex = prev.items.findIndex(
-      (item) =>
-        Number(item.product_id) === productId
-    );
+  function changeOrderItemQuantity(index, nextQuantity) {
+    const quantity = Math.max(1, Number(nextQuantity) || 1);
 
-    if (existingIndex >= 0) {
-      return {
-        ...prev,
+    setOrderForm((prev) => ({
+      ...prev,
+      items: prev.items.map((item, itemIndex) =>
+        itemIndex === index
+          ? { ...item, quantity }
+          : item
+      ),
+    }));
+  }
 
-        items: prev.items.map((item, index) =>
-          index === existingIndex
-            ? {
-                ...item,
-                quantity:
-                  Number(item.quantity || 0) + 1,
-              }
-            : item
-        ),
-      };
+  function removeOrderItem(index) {
+    setOrderForm((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  function addProductToOrder() {
+    const productId = Number(newOrderProductId);
+
+    if (!productId) {
+      alert("Please select a product");
+      return;
     }
 
-    return {
-      ...prev,
+    const product = getProductById(productId);
 
-      items: [
-        ...prev.items,
-        {
-          product_id: productId,
-          product_name: product.name,
+    if (!product) {
+      alert("Product not found");
+      return;
+    }
 
-          product_image:
-            product.image_url ||
-            product.image ||
-            "",
+    if (Number(product.stock || 0) <= 0 || product.is_active === false) {
+      alert("This product is not currently available");
+      return;
+    }
 
-          quantity: 1,
-          unit_price: Number(product.price || 0),
-        },
-      ],
-    };
-  });
-
-  setNewOrderProductId("");
-}
-
-const orderPreview = useMemo(() => {
-  const subtotal = orderForm.items.reduce(
-    (sum, item) => {
-      const product = getProductById(
-        item.product_id
+    setOrderForm((prev) => {
+      const existingIndex = prev.items.findIndex(
+        (item) => Number(item.product_id) === productId
       );
 
+      if (existingIndex >= 0) {
+        return {
+          ...prev,
+          items: prev.items.map((item, index) =>
+            index === existingIndex
+              ? {
+                  ...item,
+                  quantity: Number(item.quantity || 0) + 1,
+                }
+              : item
+          ),
+        };
+      }
+
+      return {
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            product_id: productId,
+            product_name: product.name,
+            product_image: product.image_url || product.image || "",
+            quantity: 1,
+            unit_price: Number(product.price || 0),
+          },
+        ],
+      };
+    });
+
+    setNewOrderProductId("");
+  }
+
+  const orderPreview = useMemo(() => {
+    const subtotal = orderForm.items.reduce((sum, item) => {
+      const product = getProductById(item.product_id);
       const unitPrice =
         Number(item.unit_price) ||
         Number(product?.price || 0);
 
-      const quantity = Number(
-        item.quantity || 0
-      );
+      return sum + unitPrice * Number(item.quantity || 0);
+    }, 0);
 
-      return sum + unitPrice * quantity;
-    },
-    0
-  );
+    let couponDiscount = 0;
 
-  let couponDiscount = 0;
-
-  if (
-    orderForm.coupon_code &&
-    Number(orderForm.coupon_discount_value) > 0
-  ) {
     if (
-      orderForm.coupon_discount_type === "percent"
+      orderForm.coupon_code &&
+      orderForm.coupon_discount_value > 0
     ) {
-      couponDiscount =
-        subtotal *
-        (Number(
-          orderForm.coupon_discount_value
-        ) /
-          100);
-    } else if (
-      orderForm.coupon_discount_type === "fixed"
-    ) {
-      couponDiscount = Number(
-        orderForm.coupon_discount_value
-      );
+      if (orderForm.coupon_discount_type === "percent") {
+        couponDiscount =
+          subtotal * (orderForm.coupon_discount_value / 100);
+      } else if (orderForm.coupon_discount_type === "fixed") {
+        couponDiscount = orderForm.coupon_discount_value;
+      }
     }
-  }
 
-  const cartDiscount =
-    subtotal > CART_DISCOUNT_THRESHOLD
-      ? subtotal * CART_DISCOUNT_PERCENT
-      : 0;
+    const cartDiscount =
+      subtotal > CART_DISCOUNT_THRESHOLD
+        ? subtotal * CART_DISCOUNT_PERCENT
+        : 0;
 
-  const discount = Math.min(
-    subtotal,
-    couponDiscount + cartDiscount
-  );
+    const discount = Math.min(
+      subtotal,
+      couponDiscount + cartDiscount
+    );
 
-  return {
-    subtotal: Number(subtotal.toFixed(2)),
-    discount: Number(discount.toFixed(2)),
-
-    total: Number(
-      (subtotal - discount).toFixed(2)
-    ),
-  };
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      discount: Number(discount.toFixed(2)),
+      total: Number((subtotal - discount).toFixed(2)),
+    };
 }, [
   orderForm.items,
   orderForm.coupon_code,
@@ -601,151 +488,103 @@ const orderPreview = useMemo(() => {
   getProductById,
 ]);
 
-async function handleOrderUpdate(event) {
-  event.preventDefault();
+  async function handleOrderUpdate(event) {
+    event.preventDefault();
 
-  if (!editingOrderId) {
-    return;
-  }
+    if (!editingOrderId) return;
 
-  if (!orderForm.customer_name.trim()) {
-    alert("Customer name is required");
-    return;
-  }
+    if (!orderForm.customer_name.trim()) {
+      alert("Customer name is required");
+      return;
+    }
 
-  if (!orderForm.phone.trim()) {
-    alert("Phone is required");
-    return;
-  }
+    if (!orderForm.phone.trim()) {
+      alert("Phone is required");
+      return;
+    }
 
-  if (!orderForm.governorate.trim()) {
-    alert("Governorate is required");
-    return;
-  }
+    if (!orderForm.governorate.trim()) {
+      alert("Governorate is required");
+      return;
+    }
 
-  if (!orderForm.address.trim()) {
-    alert("Address is required");
-    return;
-  }
+    if (!orderForm.address.trim()) {
+      alert("Address is required");
+      return;
+    }
 
-  if (!orderForm.items.length) {
-    alert(
-      "The order must contain at least one product"
-    );
-    return;
-  }
+    if (!orderForm.items.length) {
+      alert("The order must contain at least one product");
+      return;
+    }
 
-  const hasInvalidQuantity =
-    orderForm.items.some(
+    const hasInvalidQuantity = orderForm.items.some(
       (item) =>
-        !Number.isInteger(
-          Number(item.quantity)
-        ) ||
+        !Number.isInteger(Number(item.quantity)) ||
         Number(item.quantity) <= 0
     );
 
-  if (hasInvalidQuantity) {
-    alert(
-      "Every product quantity must be a positive whole number"
-    );
-    return;
-  }
-
-  try {
-    await updateOrderDetails(editingOrderId, {
-      customer_name:
-        orderForm.customer_name.trim(),
-
-      phone: orderForm.phone.trim(),
-      email: orderForm.email.trim(),
-
-      governorate:
-        orderForm.governorate.trim(),
-
-      address: orderForm.address.trim(),
-      note: orderForm.note.trim(),
-
-      status: orderForm.status,
-
-      payment_method:
-        orderForm.payment_method,
-
-      payment_status:
-        orderForm.payment_status,
-
-      payment_details:
-        orderForm.payment_details,
-
-      items: orderForm.items.map((item) => ({
-        product_id: Number(item.product_id),
-        quantity: Number(item.quantity),
-      })),
-    });
-
-    await Promise.all([
-      loadOrders(),
-      loadProducts(),
-    ]);
-
-    cancelEditOrder();
-  } catch (err) {
-    console.error(err);
-
-    alert(
-      err.message || "Failed to update order"
-    );
-  }
-}
-
-async function handleOrderDelete(orderId) {
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this order? Stock will be returned."
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    await deleteOrder(orderId);
-
-    await Promise.all([
-      loadOrders(),
-      loadProducts(),
-      loadCoupons(),
-    ]);
-
-    if (editingOrderId === orderId) {
-      cancelEditOrder();
+    if (hasInvalidQuantity) {
+      alert("Every product quantity must be a positive whole number");
+      return;
     }
-  } catch (err) {
-    console.error(err);
 
-    alert(
-      err.message || "Failed to delete order"
-    );
+    try {
+      await updateOrderDetails(editingOrderId, {
+        customer_name: orderForm.customer_name.trim(),
+        phone: orderForm.phone.trim(),
+        email: orderForm.email.trim(),
+        governorate: orderForm.governorate.trim(),
+        address: orderForm.address.trim(),
+        note: orderForm.note.trim(),
+        status: orderForm.status,
+        payment_method: orderForm.payment_method,
+        payment_status: orderForm.payment_status,
+        payment_details: orderForm.payment_details,
+        items: orderForm.items.map((item) => ({
+          product_id: Number(item.product_id),
+          quantity: Number(item.quantity),
+        })),
+      });
+
+      await Promise.all([loadOrders(), loadProducts()]);
+      cancelEditOrder();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update order");
+    }
   }
-}
 
-async function handleOrderStatusChange(
-  orderId,
-  status
-) {
-  try {
-    await updateOrderDetails(orderId, {
-      status,
-    });
-
-    await loadOrders();
-  } catch (err) {
-    console.error(err);
-
-    alert(
-      err.message ||
-        "Failed to update order status"
+  async function handleOrderDelete(orderId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this order? Stock will be returned."
     );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteOrder(orderId);
+      await Promise.all([loadOrders(), loadProducts(), loadCoupons()]);
+
+      if (editingOrderId === orderId) {
+        cancelEditOrder();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete order");
+    }
   }
-}
+
+  async function handleOrderStatusChange(orderId, status) {
+    try {
+      await updateOrderDetails(orderId, { status });
+      await loadOrders();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update order status");
+    }
+  }
+
   /* =========================
      Coupons
   ========================= */
@@ -1461,8 +1300,7 @@ async function handleOrderStatusChange(
                               Unit: {Number(item.unit_price || 0)} EGP
                             </span>
                             <strong>
-                              Total after discount:{" "}
-                              {getItemTotalAfterDiscount(order, item)} EGP
+                              Total: {Number(item.total_price || 0)} EGP
                             </strong>
                           </div>
                         ))
