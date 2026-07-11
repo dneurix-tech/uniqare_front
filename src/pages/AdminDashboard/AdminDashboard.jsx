@@ -125,10 +125,10 @@ export default function AdminDashboard() {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("uniqare_admin_logged_in");
-    navigate("/admin-login");
-  }
+function logout() {
+  localStorage.removeItem("uniqare_admin_logged_in");
+  navigate("/uniqare-control-panel-9x7/login");
+}
 
   /* =========================
      Products

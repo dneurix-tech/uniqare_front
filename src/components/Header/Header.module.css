@@ -1,106 +1,207 @@
 .header {
-  padding: 20px 16px 14px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #ebc0ca 0%, #e6c4ca 100%);
-  border-bottom: 1px solid rgba(137, 32, 71, 0.18);
-  box-shadow: 0 8px 24px rgba(137, 32, 71, 0.08);
+  position: relative;
+  width: 100%;
+  min-height: 125px;
+  overflow: hidden;
+  background: #892047;
+  box-shadow: 0 6px 22px rgba(82, 31, 52, 0.16);
+}
+
+.headerBackground {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.backgroundImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  transform: scale(1.02);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(137, 32, 71, 0.96) 0%,
+      rgba(137, 32, 71, 0.82) 38%,
+      rgba(137, 32, 71, 0.42) 70%,
+      rgba(137, 32, 71, 0.25) 100%
+    );
 }
 
 .headerContent {
-  width: min(1150px, 100%);
+  position: relative;
+  z-index: 2;
+  width: min(1200px, 92%);
+  min-height: 125px;
+  margin: 0 auto;
+  padding: 18px 0;
+
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 30px;
 }
 
 .brand {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  transition: transform 0.2s ease;
+  gap: 14px;
+  color: white;
   text-decoration: none;
 }
 
-.brand:hover {
-  transform: translateY(-2px);
-}
-
 .logoCircle {
-  width: 86px;
-  height: 86px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #fff;
-  border: 3px solid rgba(137, 32, 71, 0.22);
+  width: 78px;
+  height: 78px;
+  flex-shrink: 0;
+  padding: 4px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 18px rgba(137, 32, 71, 0.18);
+
+  border-radius: 50%;
+  background: white;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 24px rgba(61, 19, 34, 0.25);
 }
 
 .logoImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   display: block;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .brandName {
   margin: 0;
-  font-size: 32px;
-  line-height: 1;
-  color: var(--uniqare-primary);
-  letter-spacing: 2px;
+  color: white;
+  font-size: clamp(25px, 3vw, 38px);
   font-weight: 900;
-  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  line-height: 1;
+  text-shadow: 0 3px 12px rgba(46, 15, 27, 0.3);
+}
+
+.tagline {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .navLink {
-  text-decoration: none;
-  padding: 9px 18px;
+  padding: 10px 18px;
   border-radius: 999px;
-  color: #892047;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(137, 32, 71, 0.14);
+
+  color: white;
+  text-decoration: none;
   font-size: 14px;
   font-weight: 800;
-  transition: 0.2s ease;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
 }
 
 .navLink:hover {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.22);
   transform: translateY(-1px);
 }
 
 .active {
-  background: #892047;
-  color: #ffffff;
+  background: white;
+  color: #892047;
+  box-shadow: 0 5px 15px rgba(62, 17, 34, 0.2);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
+  .header {
+    min-height: 150px;
+  }
+
+  .backgroundImage {
+    object-position: center;
+  }
+
+  .overlay {
+    background: rgba(137, 32, 71, 0.78);
+  }
+
+  .headerContent {
+    min-height: 150px;
+    padding: 16px 0;
+
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+  }
+
   .logoCircle {
-    width: 70px;
-    height: 70px;
+    width: 62px;
+    height: 62px;
   }
 
   .brandName {
     font-size: 27px;
   }
 
+  .tagline {
+    font-size: 11px;
+  }
+
+  .nav {
+    width: 100%;
+    justify-content: center;
+  }
+
   .navLink {
-    padding: 8px 15px;
-    font-size: 13px;
+    padding: 9px 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand {
+    gap: 10px;
+  }
+
+  .logoCircle {
+    width: 55px;
+    height: 55px;
+  }
+
+  .brandName {
+    font-size: 23px;
+  }
+
+  .tagline {
+    display: none;
   }
 }

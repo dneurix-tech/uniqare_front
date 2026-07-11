@@ -22,7 +22,7 @@ export default function AdminLogin() {
 
     if (form.email === "admin@uniqare.com" && form.password === "123456") {
       localStorage.setItem("uniqare_admin_logged_in", "true");
-      navigate("/admin");
+      navigate("/uniqare-control-panel-9x7");
     } else {
       setError("Invalid email or password");
     }
