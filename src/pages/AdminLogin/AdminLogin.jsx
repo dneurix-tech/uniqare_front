@@ -40,7 +40,7 @@ export default function AdminLogin() {
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="admin@uniqare.com"
+            placeholder=""
           />
         </div>
 
@@ -51,7 +51,7 @@ export default function AdminLogin() {
             type="password"
             value={form.password}
             onChange={handleChange}
-            placeholder="123456"
+            placeholder=""
           />
         </div>
 
