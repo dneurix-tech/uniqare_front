@@ -2,6 +2,12 @@ import { Link, NavLink } from "react-router-dom";
 import styles from "./Header.module.css";
 
 export default function Header() {
+  function getNavLinkClass({ isActive }) {
+    return isActive
+      ? `${styles.navLink} ${styles.active}`
+      : styles.navLink;
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.headerBackground}>
@@ -26,6 +32,7 @@ export default function Header() {
 
           <div className={styles.brandText}>
             <h1 className={styles.brandName}>UNIQARE</h1>
+
             <span className={styles.tagline}>
               Beauty, care and confidence
             </span>
@@ -35,24 +42,24 @@ export default function Header() {
         <nav className={styles.nav}>
           <NavLink
             to="/"
-            className={({ isActive }) =>
-              isActive
-                ? `${styles.navLink} ${styles.active}`
-                : styles.navLink
-            }
+            end
+            className={getNavLinkClass}
           >
             Home
           </NavLink>
 
           <NavLink
             to="/reviews"
-            className={({ isActive }) =>
-              isActive
-                ? `${styles.navLink} ${styles.active}`
-                : styles.navLink
-            }
+            className={getNavLinkClass}
           >
             Reviews
+          </NavLink>
+
+          <NavLink
+            to="/about-us"
+            className={getNavLinkClass}
+          >
+            About Us
           </NavLink>
         </nav>
       </div>

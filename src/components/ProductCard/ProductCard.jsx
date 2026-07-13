@@ -10,7 +10,17 @@ export default function ProductCard({ product, onAddToCart }) {
   const price = Number(product.price || 0);
   const oldPrice = Number(product.old_price || product.oldPrice || 0);
 
-  const hasDiscount = oldPrice > price;
+  const hasDiscount = oldPrice > price && oldPrice > 0;
+
+  const discountPercentage = hasDiscount
+    ? Math.round(((oldPrice - price) / oldPrice) * 100)
+    : 0;
+
+  function formatPrice(value) {
+    return new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
+  }
 
   function openProductDetails() {
     navigate(`/product/${product.id}`);
@@ -20,6 +30,7 @@ export default function ProductCard({ product, onAddToCart }) {
     if (event.target.tagName === "BUTTON") return;
 
     if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
       openProductDetails();
     }
   }
@@ -34,7 +45,9 @@ export default function ProductCard({ product, onAddToCart }) {
 
   return (
     <article
-      className={`${styles.card} ${isSoldOut ? styles.cardSoldOut : ""}`}
+      className={`${styles.card} ${
+        isSoldOut ? styles.cardSoldOut : ""
+      }`}
       onClick={openProductDetails}
       onKeyDown={handleKeyDown}
       role="button"
@@ -43,7 +56,11 @@ export default function ProductCard({ product, onAddToCart }) {
       <div className={styles.imageWrapper}>
         <img
           className={styles.image}
-          src={product.image || product.image_url}
+          src={
+            product.image ||
+            product.image_url ||
+            "/images/placeholder.jpg"
+          }
           alt={product.name}
         />
 
@@ -56,17 +73,28 @@ export default function ProductCard({ product, onAddToCart }) {
         </span>
 
         {hasDiscount && !isSoldOut && (
-          <span className={styles.discountBadge}>Sale</span>
+          <span className={styles.discountBadge}>
+            -{discountPercentage}%
+          </span>
         )}
       </div>
 
       <div className={styles.content}>
-        <h3 className={styles.title}>{product.name}</h3>
-        <p className={styles.description}>{product.description}</p>
+        <div className={styles.productInfo}>
+          <h3 className={styles.title}>{product.name}</h3>
+
+          {product.description && (
+            <p className={styles.description}>
+              {product.description}
+            </p>
+          )}
+        </div>
 
         <div
           className={`${styles.stockBox} ${
-            isSoldOut ? styles.stockSoldOut : styles.stockAvailable
+            isSoldOut
+              ? styles.stockSoldOut
+              : styles.stockAvailable
           }`}
         >
           {isSoldOut ? (
@@ -78,15 +106,27 @@ export default function ProductCard({ product, onAddToCart }) {
           )}
         </div>
 
-        <div className={styles.footer}>
+        <div className={styles.priceSection}>
           <div className={styles.priceBox}>
             {hasDiscount && (
-              <span className={styles.oldPrice}>{oldPrice} EGP</span>
+              <span className={styles.oldPrice}>
+                {formatPrice(oldPrice)} EGP
+              </span>
             )}
 
-            <strong className={styles.price}>{price} EGP</strong>
+            <strong className={styles.price}>
+              {formatPrice(price)} EGP
+            </strong>
           </div>
 
+          {hasDiscount && (
+            <span className={styles.savingText}>
+              Save {formatPrice(oldPrice - price)} EGP
+            </span>
+          )}
+        </div>
+
+        <div className={styles.footer}>
           {isSoldOut ? (
             <button
               type="button"

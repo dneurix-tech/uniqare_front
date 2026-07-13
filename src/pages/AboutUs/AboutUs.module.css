@@ -1,0 +1,535 @@
+.page {
+  min-height: 100vh;
+  padding: 42px 20px 80px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(235, 192, 202, 0.35),
+      transparent 35%
+    ),
+    #fffafb;
+  color: #392d31;
+}
+
+.container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.backWrapper {
+  margin-bottom: 24px;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 80px 32px;
+  text-align: center;
+  border-radius: 32px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(137, 32, 71, 0.96),
+      rgba(132, 95, 105, 0.92)
+    );
+  box-shadow: 0 24px 60px rgba(137, 32, 71, 0.18);
+}
+
+.hero::before,
+.hero::after {
+  position: absolute;
+  content: "";
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero::before {
+  top: -90px;
+  right: -70px;
+  width: 260px;
+  height: 260px;
+}
+
+.hero::after {
+  bottom: -120px;
+  left: -70px;
+  width: 320px;
+  height: 320px;
+}
+
+.eyebrow,
+.sectionLabel {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #f4d4dc;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 18px;
+  color: #ffffff;
+  font-size: clamp(42px, 8vw, 74px);
+  line-height: 1;
+}
+
+.hero p {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.introduction {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr;
+  gap: 50px;
+  align-items: center;
+  margin-top: 90px;
+}
+
+.introductionContent .sectionLabel,
+.sectionHeading .sectionLabel,
+.contactContent .sectionLabel {
+  color: #892047;
+}
+
+.introductionContent h2,
+.sectionHeading h2,
+.contactContent h2,
+.disclaimer h2 {
+  margin: 0 0 20px;
+  color: #3c2830;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.2;
+}
+
+.introductionContent p {
+  margin: 0 0 18px;
+  color: #6d5b61;
+  font-size: 17px;
+  line-height: 1.9;
+}
+
+.logoCard {
+  padding: 38px;
+  text-align: center;
+  border: 1px solid rgba(137, 32, 71, 0.12);
+  border-radius: 30px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(79, 49, 59, 0.1);
+}
+
+.logoCard img {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 8px solid #f7e8ec;
+}
+
+.logoCard h3 {
+  margin: 22px 0 8px;
+  color: #892047;
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+.logoCard p {
+  margin: 0;
+  color: #7c686f;
+}
+
+.valuesSection,
+.policySection,
+.exchangeSteps,
+.contactSection,
+.disclaimer {
+  margin-top: 100px;
+}
+
+.sectionHeading {
+  max-width: 760px;
+  margin: 0 auto 45px;
+  text-align: center;
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: #76636a;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.infoCard {
+  padding: 34px 28px;
+  border: 1px solid rgba(137, 32, 71, 0.1);
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 14px 36px rgba(82, 47, 59, 0.07);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.infoCard:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 22px 46px rgba(82, 47, 59, 0.12);
+}
+
+.icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 22px;
+  place-items: center;
+  border-radius: 18px;
+  background: #f8e6eb;
+  color: #892047;
+  font-size: 26px;
+}
+
+.infoCard h3 {
+  margin: 0 0 14px;
+  color: #412d34;
+  font-size: 21px;
+}
+
+.infoCard p {
+  margin: 0;
+  color: #746168;
+  line-height: 1.8;
+}
+
+.policySection {
+  padding: 65px 40px;
+  border-radius: 32px;
+  background: #ffffff;
+  box-shadow: 0 20px 55px rgba(82, 47, 59, 0.08);
+}
+
+.policyContent {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+
+.policyCard {
+  display: flex;
+  gap: 20px;
+  padding: 26px;
+  border: 1px solid #f0dbe1;
+  border-radius: 22px;
+  background: #fffafb;
+}
+
+.policyNumber {
+  flex: 0 0 auto;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 15px;
+  background: #892047;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.policyCard h3 {
+  margin: 3px 0 10px;
+  color: #482f38;
+  font-size: 19px;
+}
+
+.policyCard p {
+  margin: 0 0 10px;
+  color: #76636a;
+  line-height: 1.75;
+}
+
+.policyCard p:last-child {
+  margin-bottom: 0;
+}
+
+.policyNotice {
+  margin-top: 26px;
+  padding: 22px 25px;
+  border-left: 5px solid #892047;
+  border-radius: 14px;
+  background: #f8e8ed;
+}
+
+.policyNotice strong {
+  color: #892047;
+}
+
+.policyNotice p {
+  display: inline;
+  margin: 0 0 0 6px;
+  color: #654f57;
+  line-height: 1.7;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stepCard {
+  position: relative;
+  padding: 32px 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(82, 47, 59, 0.08);
+}
+
+.stepCard span {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: #892047;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.stepCard h3 {
+  margin: 0 0 12px;
+  color: #422e35;
+}
+
+.stepCard p {
+  margin: 0;
+  color: #76636a;
+  line-height: 1.75;
+}
+
+.contactSection {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 40px;
+  align-items: center;
+  overflow: hidden;
+  padding: 60px;
+  border-radius: 32px;
+  background:
+    linear-gradient(
+      135deg,
+      #f9e8ed,
+      #fff8fa
+    );
+}
+
+.contactContent > p {
+  max-width: 680px;
+  color: #6e5961;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.contactDetails {
+  display: grid;
+  gap: 13px;
+  margin: 30px 0;
+}
+
+.contactDetails div {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(137, 32, 71, 0.12);
+}
+
+.contactDetails span {
+  color: #856e76;
+}
+
+.contactDetails strong {
+  color: #4a323b;
+  text-align: right;
+}
+
+.whatsappButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 16px;
+  background: #892047;
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease;
+}
+
+.whatsappButton:hover {
+  transform: translateY(-3px);
+  background: #6f1637;
+}
+
+.contactDecoration {
+  display: grid;
+  place-items: center;
+}
+
+.contactCircle {
+  display: flex;
+  width: 260px;
+  height: 260px;
+  padding: 30px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      135deg,
+      #892047,
+      #845f69
+    );
+  box-shadow: 0 25px 60px rgba(137, 32, 71, 0.25);
+  color: #ffffff;
+  text-align: center;
+}
+
+.contactCircle span {
+  font-size: 31px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.contactCircle small {
+  max-width: 170px;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+}
+
+.disclaimer {
+  padding: 38px;
+  border: 1px solid rgba(137, 32, 71, 0.12);
+  border-radius: 25px;
+  background: #ffffff;
+}
+
+.disclaimer h2 {
+  font-size: 28px;
+}
+
+.disclaimer p {
+  margin: 0 0 13px;
+  color: #715d64;
+  line-height: 1.8;
+}
+
+.disclaimer p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 950px) {
+  .introduction,
+  .contactSection {
+    grid-template-columns: 1fr;
+  }
+
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .policyContent {
+    grid-template-columns: 1fr;
+  }
+
+  .stepsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contactDecoration {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .page {
+    padding: 24px 14px 55px;
+  }
+
+  .hero {
+    padding: 58px 20px;
+    border-radius: 24px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  .introduction,
+  .valuesSection,
+  .policySection,
+  .exchangeSteps,
+  .contactSection,
+  .disclaimer {
+    margin-top: 60px;
+  }
+
+  .cardsGrid,
+  .stepsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .policySection,
+  .contactSection {
+    padding: 36px 18px;
+    border-radius: 24px;
+  }
+
+  .policyCard {
+    gap: 14px;
+    padding: 20px 16px;
+  }
+
+  .policyNumber {
+    width: 42px;
+    height: 42px;
+  }
+
+  .contactDetails div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .contactDetails strong {
+    text-align: left;
+  }
+
+  .whatsappButton {
+    width: 100%;
+  }
+
+  .disclaimer {
+    padding: 25px 20px;
+  }
+}

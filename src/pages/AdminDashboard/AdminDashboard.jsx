@@ -21,6 +21,7 @@ const CART_DISCOUNT_PERCENT = 0.1;
 
 const emptyProductForm = {
   name: "",
+  old_price: "",
   price: "",
   image: null,
   description: "",
@@ -154,6 +155,12 @@ function logout() {
   async function handleProductSubmit(event) {
     event.preventDefault();
 
+    const currentPrice = Number(productForm.price);
+    const oldPrice =
+      productForm.old_price === ""
+        ? null
+        : Number(productForm.old_price);
+
     if (
       !productForm.name ||
       !productForm.price ||
@@ -161,6 +168,19 @@ function logout() {
       productForm.stock === ""
     ) {
       alert("Please fill required product fields");
+      return;
+    }
+
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      alert("Current price must be greater than 0");
+      return;
+    }
+
+    if (
+      oldPrice !== null &&
+      (!Number.isFinite(oldPrice) || oldPrice <= currentPrice)
+    ) {
+      alert("Old price must be greater than current price");
       return;
     }
 
@@ -192,6 +212,7 @@ function logout() {
 
     setProductForm({
       name: product.name || "",
+      old_price: product.old_price ?? product.oldPrice ?? "",
       price: product.price || "",
       image: null,
       description:
@@ -466,13 +487,13 @@ const getProductById = useCallback(
     }
 
     const cartDiscount =
-      subtotal > CART_DISCOUNT_THRESHOLD
+      subtotal >= CART_DISCOUNT_THRESHOLD
         ? subtotal * CART_DISCOUNT_PERCENT
         : 0;
 
     const discount = Math.min(
       subtotal,
-      couponDiscount + cartDiscount
+      Math.max(couponDiscount, cartDiscount)
     );
 
     return {
@@ -799,13 +820,23 @@ const getProductById = useCallback(
               />
 
               <input
-                name="price"
+                name="old_price"
                 type="number"
                 min="0"
                 step="0.01"
+                value={productForm.old_price}
+                onChange={handleProductChange}
+                placeholder="Old price (optional)"
+              />
+
+              <input
+                name="price"
+                type="number"
+                min="0.01"
+                step="0.01"
                 value={productForm.price}
                 onChange={handleProductChange}
-                placeholder="Price"
+                placeholder="Current price"
               />
 
               <input
@@ -878,7 +909,20 @@ const getProductById = useCallback(
 
                     <div>
                       <h3>{product.name}</h3>
-                      <p>{product.price} EGP</p>
+
+                      <div className={styles.adminPriceBox}>
+                        {Number(product.old_price || 0) >
+                          Number(product.price || 0) && (
+                          <span className={styles.adminOldPrice}>
+                            {product.old_price} EGP
+                          </span>
+                        )}
+
+                        <strong className={styles.adminCurrentPrice}>
+                          {product.price} EGP
+                        </strong>
+                      </div>
+
                       <p>Stock: {product.stock}</p>
 
                       <span

@@ -299,3 +299,107 @@
   font-weight: 800;
   cursor: pointer;
 }
+
+.cartMessage {
+  position: fixed;
+  top: 110px;
+  right: 24px;
+  z-index: 3000;
+  display: flex;
+  width: min(410px, calc(100% - 32px));
+  padding: 16px 18px;
+  align-items: center;
+  gap: 13px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(70, 35, 47, 0.2);
+  animation: showCartMessage 0.3s ease;
+}
+
+.cartSuccessMessage {
+  border: 1px solid rgba(137, 32, 71, 0.2);
+}
+
+.cartErrorMessage {
+  border: 1px solid rgba(190, 50, 50, 0.25);
+}
+
+.cartMessageIcon {
+  flex-shrink: 0;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: #892047;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.cartErrorMessage .cartMessageIcon {
+  background: #b93636;
+}
+
+.cartMessageContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.cartMessageContent strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #432d35;
+  font-size: 15px;
+}
+
+.cartMessageContent p {
+  margin: 0;
+  color: #725d65;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.closeCartMessage {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8b747c;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeCartMessage:hover {
+  color: #892047;
+}
+
+@keyframes showCartMessage {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .cartMessage {
+    top: 90px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    padding: 14px;
+  }
+
+  .cartMessageIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}

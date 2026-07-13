@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import ProductCard from "../../components/ProductCard/ProductCard";
@@ -21,6 +22,11 @@ export default function Home() {
 
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+
+  const [cartMessage, setCartMessage] = useState("");
+  const [cartMessageType, setCartMessageType] = useState("success");
+
+  const cartMessageTimer = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,6 +53,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (cartMessageTimer.current) {
+        clearTimeout(cartMessageTimer.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     async function loadProducts() {
       try {
         setLoading(true);
@@ -58,6 +72,7 @@ export default function Home() {
           const sortedProducts = [...data].sort((a, b) => {
             const aSoldOut =
               Number(a.stock || 0) <= 0 || a.is_active === false;
+
             const bSoldOut =
               Number(b.stock || 0) <= 0 || b.is_active === false;
 
@@ -102,18 +117,40 @@ export default function Home() {
     0
   );
 
-function handleAddToCart(product) {
-  const result = addToCart(product, 1);
+  function showCartMessage(message, type = "success") {
+    setCartMessage(message);
+    setCartMessageType(type);
 
-  if (!result.success) {
-    alert(result.message);
-    return;
+    if (cartMessageTimer.current) {
+      clearTimeout(cartMessageTimer.current);
+    }
+
+    cartMessageTimer.current = setTimeout(() => {
+      setCartMessage("");
+    }, 2500);
   }
 
-  const latestCart = getCartItems();
+  function handleAddToCart(product) {
+    const result = addToCart(product, 1);
 
-  setCart(latestCart);
-}
+    if (!result.success) {
+      showCartMessage(
+        result.message || "Unable to add this product to your cart.",
+        "error"
+      );
+
+      return;
+    }
+
+    const latestCart = getCartItems();
+
+    setCart(latestCart);
+
+    showCartMessage(
+      `${product.name} has been added to your cart successfully.`,
+      "success"
+    );
+  }
 
   function increaseQuantity(productId) {
     const item = cart.find((cartItem) => cartItem.id === productId);
@@ -124,7 +161,7 @@ function handleAddToCart(product) {
     const stock = Number(item.stock || 0);
 
     if (currentQuantity >= stock) {
-      alert(`Only ${stock} pieces available`);
+      showCartMessage(`Only ${stock} pieces are available.`, "error");
       return;
     }
 
@@ -161,13 +198,15 @@ function handleAddToCart(product) {
     const updatedCart = removeFromCart(productId);
 
     setCart(updatedCart);
+
+    showCartMessage("Product has been removed from your cart.", "success");
   }
 
   function goToCheckout() {
     const latestCart = getCartItems();
 
     if (latestCart.length === 0) {
-      alert("Your cart is empty");
+      showCartMessage("Your cart is empty.", "error");
       return;
     }
 
@@ -187,10 +226,47 @@ function handleAddToCart(product) {
             setCart(getCartItems());
             setCartOpen(true);
           }}
+          aria-label="Open cart"
         >
           🛒
+
           {cartCount > 0 && <span>{cartCount}</span>}
         </button>
+
+        {cartMessage && (
+          <div
+            className={`${styles.cartMessage} ${
+              cartMessageType === "error"
+                ? styles.cartErrorMessage
+                : styles.cartSuccessMessage
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className={styles.cartMessageIcon}>
+              {cartMessageType === "error" ? "!" : "✓"}
+            </span>
+
+            <div className={styles.cartMessageContent}>
+              <strong>
+                {cartMessageType === "error"
+                  ? "Unable to Add Product"
+                  : "Added to Cart"}
+              </strong>
+
+              <p>{cartMessage}</p>
+            </div>
+
+            <button
+              type="button"
+              className={styles.closeCartMessage}
+              onClick={() => setCartMessage("")}
+              aria-label="Close message"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {cartOpen && (
           <div className={styles.cartOverlay}>
@@ -203,7 +279,11 @@ function handleAddToCart(product) {
               <div className={styles.cartHeader}>
                 <h3>Your Cart</h3>
 
-                <button type="button" onClick={() => setCartOpen(false)}>
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(false)}
+                  aria-label="Close cart"
+                >
                   ✕
                 </button>
               </div>
@@ -215,10 +295,14 @@ function handleAddToCart(product) {
                   <div className={styles.cartItems}>
                     {cart.map((item) => (
                       <div key={item.id} className={styles.cartItem}>
-                        <img src={item.image} alt={item.name} />
+                        <img
+                          src={item.image || item.image_url}
+                          alt={item.name}
+                        />
 
                         <div className={styles.cartItemInfo}>
                           <h4>{item.name}</h4>
+
                           <p>{item.price} EGP</p>
 
                           <div className={styles.quantityControls}>
@@ -254,7 +338,8 @@ function handleAddToCart(product) {
                   <div className={styles.cartFooter}>
                     <div className={styles.cartTotal}>
                       <span>Total</span>
-                      <strong>{cartTotal} EGP</strong>
+
+                      <strong>{cartTotal.toFixed(2)} EGP</strong>
                     </div>
 
                     <button
@@ -272,10 +357,12 @@ function handleAddToCart(product) {
         )}
 
         <section className={styles.hero}>
-          <span className={styles.label}>Give Yourself A Unique Care</span>
+          <span className={styles.label}>
+            Give Yourself A Unique Care
+          </span>
 
           <p className={styles.subtitle}>
-            Discover uniqare products for healthy hair.
+            Discover UNIQARE products for healthy hair.
           </p>
         </section>
 
@@ -324,9 +411,17 @@ function handleAddToCart(product) {
                       key={index}
                       type="button"
                       className={
-                        currentPage === index + 1 ? styles.activePage : ""
+                        currentPage === index + 1
+                          ? styles.activePage
+                          : ""
                       }
-                      onClick={() => setCurrentPage(index + 1)}
+                      onClick={() => {
+                        setCurrentPage(index + 1);
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }}
                     >
                       {index + 1}
                     </button>

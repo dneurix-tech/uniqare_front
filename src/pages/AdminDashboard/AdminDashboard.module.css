@@ -618,3 +618,26 @@
     flex-direction: column;
   }
 }
+
+.adminPriceBox {
+  display: flex;
+  margin: 8px 0;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adminOldPrice {
+  color: #97868c;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-color: #892047;
+  text-decoration-thickness: 2px;
+}
+
+.adminCurrentPrice {
+  color: #892047;
+  font-size: 19px;
+  font-weight: 900;
+}

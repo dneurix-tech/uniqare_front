@@ -78,17 +78,26 @@ export default function Checkout() {
         item.is_active !== false
     );
 
-  const cartDiscount =
-    subtotalPrice > CART_DISCOUNT_THRESHOLD && !hasInvalidQuantity
-      ? Number((subtotalPrice * CART_DISCOUNT_PERCENT).toFixed(2))
-      : 0;
+    // خصم تلقائي 10% عندما يكون إجمالي المنتجات 1000 جنيه أو أكثر
+const cartDiscount =
+  subtotalPrice >= CART_DISCOUNT_THRESHOLD && !hasInvalidQuantity
+    ? Number((subtotalPrice * CART_DISCOUNT_PERCENT).toFixed(2))
+    : 0;
 
-  const totalDiscount = Math.min(
-    subtotalPrice,
-    Number((couponDiscount + cartDiscount).toFixed(2))
-  );
+// نختار الخصم الأكبر فقط، ولا نجمع الخصمين
+const totalDiscount = Math.min(
+  subtotalPrice,
+  Number(Math.max(couponDiscount, cartDiscount).toFixed(2))
+);
 
-  const payablePrice = Number((subtotalPrice - totalDiscount).toFixed(2));
+// تحديد نوع الخصم الذي تم اختياره
+const isCouponDiscountApplied =
+  couponDiscount > cartDiscount && couponDiscount > 0;
+
+const isCartDiscountApplied =
+  cartDiscount > 0 && cartDiscount >= couponDiscount;
+
+const payablePrice = Number((subtotalPrice - totalDiscount).toFixed(2));
 
   useEffect(() => {
     async function loadCheckoutItems() {
@@ -238,39 +247,52 @@ export default function Checkout() {
     return Object.keys(newErrors).length === 0;
   }
 
-  async function applyCoupon() {
-    if (isCartEmpty) {
-      setMessage("Cart is empty");
-      return;
-    }
-
-    if (hasInvalidQuantity) {
-      setMessage("Please check product quantities first");
-      return;
-    }
-
-    if (!form.coupon.trim()) {
-      setMessage("Please enter coupon code");
-      return;
-    }
-
-    try {
-      const result = await checkCoupon({
-        coupon_code: form.coupon.trim(),
-        items: cartItems.map((item) => ({
-          product_id: item.id,
-          quantity: Number(item.quantity),
-        })),
-      });
-
-      setCouponDiscount(Number(result.discount_amount || 0));
-      setMessage("Coupon applied successfully");
-    } catch (err) {
-      console.error(err);
-      setCouponDiscount(0);
-      setMessage("Invalid coupon");
-    }
+async function applyCoupon() {
+  if (isCartEmpty) {
+    setMessage("Cart is empty");
+    return;
   }
+
+  if (hasInvalidQuantity) {
+    setMessage("Please check product quantities first");
+    return;
+  }
+
+  if (!form.coupon.trim()) {
+    setMessage("Please enter coupon code");
+    return;
+  }
+
+  try {
+    const result = await checkCoupon({
+      coupon_code: form.coupon.trim(),
+      items: cartItems.map((item) => ({
+        product_id: item.id,
+        quantity: Number(item.quantity),
+      })),
+    });
+
+    const couponValue = Number(result.discount_amount || 0);
+
+    setCouponDiscount(couponValue);
+
+    if (couponValue > cartDiscount) {
+      setMessage(
+        `تم تطبيق الكوبون لأنه يقدم الخصم الأكبر: ${couponValue} EGP`
+      );
+    } else if (cartDiscount > 0) {
+      setMessage(
+        `خصم 10% التلقائي أكبر أو يساوي خصم الكوبون، لذلك تم تطبيق خصم ${cartDiscount} EGP`
+      );
+    } else {
+      setMessage(`تم تطبيق الكوبون بنجاح: ${couponValue} EGP`);
+    }
+  } catch (err) {
+    console.error(err);
+    setCouponDiscount(0);
+    setMessage("Invalid coupon");
+  }
+}
 
   function getPaymentLabel(method) {
     if (method === "cash") return "Cash on Delivery";
@@ -582,18 +604,31 @@ export default function Checkout() {
               )}
             </div>
 
-            {cartDiscount > 0 && (
-              <>
-                <div className={styles.discountNotice}>
-                  تم تطبيق خصم 10% لأن قيمة الكارت تعدت 1000 جنيه
-                </div>
+{isCartDiscountApplied && (
+  <>
+    <div className={styles.discountNotice}>
+      تم تطبيق خصم تلقائي 10% لأن قيمة المنتجات بلغت 1000 جنيه أو أكثر
+    </div>
 
-                <div className={styles.priceRow}>
-                  <span>Cart Discount 10%</span>
-                  <strong>-{cartDiscount} EGP</strong>
-                </div>
-              </>
-            )}
+    <div className={styles.priceRow}>
+      <span>Automatic Discount 10%</span>
+      <strong>-{cartDiscount} EGP</strong>
+    </div>
+  </>
+)}
+
+{isCouponDiscountApplied && (
+  <>
+    <div className={styles.discountNotice}>
+      تم تطبيق خصم الكوبون لأنه أكبر من الخصم التلقائي
+    </div>
+
+    <div className={styles.priceRow}>
+      <span>Coupon Discount</span>
+      <strong>-{couponDiscount} EGP</strong>
+    </div>
+  </>
+)}
 
             {couponDiscount > 0 && (
               <div className={styles.priceRow}>
