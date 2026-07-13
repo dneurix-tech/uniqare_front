@@ -359,34 +359,36 @@ async function applyCoupon() {
     setShowPaymentModal(true);
   }
 
-  function handlePaymentChoice(method) {
-    setSelectedPayment(method);
-    setPaymentError("");
+function handlePaymentChoice(method) {
+  setSelectedPayment(method);
+  setPaymentError("");
+  setPaymentNotice("");
 
-    if (method === "cash") {
-      setPaymentNotice("تم اختيار الدفع عند الاستلام. اضغط Confirm Order لتأكيد الطلب.");
-      setShowPaymentModal(false);
-      return;
-    }
+  if (method === "cash") {
+    setPaymentNotice(
+      "تم اختيار الدفع عند الاستلام. اضغط Confirm Order لتأكيد الطلب."
+    );
 
-    if (method === "instapay") {
-      setPaymentNotice(
-        "تم اختيار InstaPay. يمكنك فتح لينك الدفع الآن، وبعد التحويل ارسل الاسكرين شوت على الواتس اب."
-      );
-
-      if (INSTAPAY_LINK) {
-        window.open(INSTAPAY_LINK, "_blank");
-      }
-
-      return;
-    }
-
-    if (method === "vodafone") {
-      setPaymentNotice(
-        "تم اختيار Vodafone Cash. بعد التحويل ارسل الاسكرين شوت على الواتس اب."
-      );
-    }
+    setShowPaymentModal(false);
+    return;
   }
+
+  if (method === "instapay") {
+    setPaymentNotice(
+      "تم اختيار InstaPay. انسخ اسم المستخدم أو اضغط Open InstaPay لفتح التطبيق، وبعد التحويل أرسل صورة التحويل على واتساب."
+    );
+
+    // لا نفتح InstaPay تلقائيًا هنا.
+    // سيُفتح فقط عندما يضغط العميل على زر Open InstaPay.
+    return;
+  }
+
+  if (method === "vodafone") {
+    setPaymentNotice(
+      "تم اختيار Vodafone Cash. انسخ الرقم، وبعد التحويل أرسل صورة التحويل على واتساب."
+    );
+  }
+}
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -886,30 +888,31 @@ async function applyCoupon() {
               </button>
             </div>
 
-            {selectedPayment === "instapay" && (
-              <div className={styles.paymentDetailsBox}>
-                <p>InstaPay Username</p>
-                <strong>{INSTAPAY_USERNAME}</strong>
+{selectedPayment === "instapay" && (
+  <div className={styles.paymentDetailsBox}>
+    <p>InstaPay Username</p>
 
-                <div className={styles.paymentActions}>
-                  <button
-                    type="button"
-                    onClick={() => copyText(INSTAPAY_USERNAME)}
-                  >
-                    Copy Username
-                  </button>
+    <strong>{INSTAPAY_USERNAME}</strong>
 
-                  {INSTAPAY_LINK && (
-                    <button
-                      type="button"
-                      onClick={() => window.open(INSTAPAY_LINK, "_blank")}
-                    >
-                      Open InstaPay
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+    <div className={styles.paymentActions}>
+      <button
+        type="button"
+        onClick={() => copyText(INSTAPAY_USERNAME)}
+      >
+        Copy Username
+      </button>
+
+      {INSTAPAY_LINK && (
+        <button
+          type="button"
+          onClick={() => window.open(INSTAPAY_LINK, "_blank")}
+        >
+          Open InstaPay
+        </button>
+      )}
+    </div>
+  </div>
+)}
 
             {selectedPayment === "vodafone" && (
               <div className={styles.paymentDetailsBox}>
