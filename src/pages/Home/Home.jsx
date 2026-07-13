@@ -194,13 +194,22 @@ export default function Home() {
     setCart(updatedCart);
   }
 
-  function removeCartItem(productId) {
-    const updatedCart = removeFromCart(productId);
+function removeCartItem(productId) {
+  const removedProduct = cart.find(
+    (item) => Number(item.id) === Number(productId)
+  );
 
-    setCart(updatedCart);
+  const updatedCart = removeFromCart(productId);
 
-    showCartMessage("Product has been removed from your cart.", "success");
-  }
+  setCart(updatedCart);
+
+  showCartMessage(
+    removedProduct
+      ? `${removedProduct.name} has been removed from your cart.`
+      : "Product has been removed from your cart.",
+    "removed"
+  );
+}
 
   function goToCheckout() {
     const latestCart = getCartItems();
@@ -235,24 +244,32 @@ export default function Home() {
 
         {cartMessage && (
           <div
-            className={`${styles.cartMessage} ${
-              cartMessageType === "error"
-                ? styles.cartErrorMessage
-                : styles.cartSuccessMessage
-            }`}
+className={`${styles.cartMessage} ${
+  cartMessageType === "error"
+    ? styles.cartErrorMessage
+    : cartMessageType === "removed"
+    ? styles.cartRemovedMessage
+    : styles.cartSuccessMessage
+}`}
             role="status"
             aria-live="polite"
           >
-            <span className={styles.cartMessageIcon}>
-              {cartMessageType === "error" ? "!" : "✓"}
-            </span>
+<span className={styles.cartMessageIcon}>
+  {cartMessageType === "error"
+    ? "!"
+    : cartMessageType === "removed"
+    ? "−"
+    : "✓"}
+</span>
 
             <div className={styles.cartMessageContent}>
-              <strong>
-                {cartMessageType === "error"
-                  ? "Unable to Add Product"
-                  : "Added to Cart"}
-              </strong>
+<strong>
+  {cartMessageType === "error"
+    ? "Unable to Add Product"
+    : cartMessageType === "removed"
+    ? "Removed from Your Cart"
+    : "Added to Cart"}
+</strong>
 
               <p>{cartMessage}</p>
             </div>

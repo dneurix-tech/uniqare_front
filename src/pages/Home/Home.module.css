@@ -403,3 +403,10 @@
     font-size: 18px;
   }
 }
+.cartRemovedMessage {
+  border: 1px solid rgba(132, 95, 105, 0.25);
+}
+
+.cartRemovedMessage .cartMessageIcon {
+  background: #845f69;
+}
