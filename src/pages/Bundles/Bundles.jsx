@@ -167,11 +167,11 @@ function BundleCard({ bundle, onAddToCart }) {
           </strong>
         </div>
 
-        <p className={styles.stockText}>
-          {Number(bundle.stock || 0) > 0
-            ? `${bundle.stock} bundle(s) available`
-            : "Sold out"}
-        </p>
+<p className={styles.stockText}>
+  {Number(bundle.stock || 0) > 0
+    ? `Only ${bundle.stock} bundle(s) left`
+    : "Sold out"}
+</p>
 
         <button
           type="button"
@@ -304,38 +304,73 @@ export default function Bundles() {
     }, 2500);
   }
 
-  function handleAddToCart(bundle) {
-    const cartBundle = {
-      ...bundle,
-      image:
-        bundle.images?.[0]?.image_url ||
-        bundle.image_url ||
-        "",
-      image_url:
-        bundle.images?.[0]?.image_url ||
-        bundle.image_url ||
-        "",
-      is_bundle: true,
-    };
+function handleAddToCart(bundle) {
+  const latestCart = getCartItems();
 
-    const result = addToCart(cartBundle, 1);
+  const existingBundle = latestCart.find(
+    (item) =>
+      Number(item.id) === Number(bundle.id)
+  );
 
-    if (!result.success) {
-      showCartMessage(
-        result.message ||
-          "Unable to add this bundle to your cart.",
-        "error"
-      );
-      return;
-    }
+  const currentQuantity = Number(
+    existingBundle?.quantity || 0
+  );
 
-    setCart(getCartItems());
+  const availableStock = Number(
+    bundle.stock || 0
+  );
 
+  if (availableStock <= 0) {
     showCartMessage(
-      `${bundle.name} has been added to your cart.`,
-      "success"
+      "This bundle is sold out.",
+      "error"
     );
+    return;
   }
+
+  if (currentQuantity >= availableStock) {
+    showCartMessage(
+      `Only ${availableStock} bundle(s) are available.`,
+      "error"
+    );
+    return;
+  }
+
+  const cartBundle = {
+    ...bundle,
+    image:
+      bundle.images?.[0]?.image_url ||
+      bundle.image_url ||
+      "",
+    image_url:
+      bundle.images?.[0]?.image_url ||
+      bundle.image_url ||
+      "",
+    is_bundle: true,
+    stock: availableStock,
+  };
+
+  const result = addToCart(
+    cartBundle,
+    1
+  );
+
+  if (!result.success) {
+    showCartMessage(
+      result.message ||
+        "Unable to add this bundle to your cart.",
+      "error"
+    );
+    return;
+  }
+
+  setCart(getCartItems());
+
+  showCartMessage(
+    `${bundle.name} has been added to your cart.`,
+    "success"
+  );
+}
 
   function increaseQuantity(productId) {
     const item = cart.find(

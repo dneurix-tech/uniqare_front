@@ -71,6 +71,7 @@ const emptyBundleForm = {
   long_description: "",
   price: "",
   old_price: "",
+  stock: "",
   category: "Bundle Offers",
   is_active: true,
   images: [],
@@ -912,6 +913,9 @@ const getProductById = useCallback(
       long_description: bundle.long_description || "",
       price: bundle.price ?? "",
       old_price: bundle.old_price ?? "",
+      stock:
+      bundle.configured_stock ??
+      bundle.stock ??"",
       category: bundle.category || "Bundle Offers",
       is_active: Boolean(bundle.is_active),
       images: [],
@@ -948,6 +952,18 @@ const getProductById = useCallback(
       bundleForm.old_price === ""
         ? null
         : Number(bundleForm.old_price);
+
+    const bundleStock = Number(
+      bundleForm.stock);
+      if (
+  !Number.isInteger(bundleStock) ||
+  bundleStock <= 0
+) {
+  alert(
+    "Available bundle quantity must be a positive whole number"
+  );
+  return;
+}
 
     const normalizedItems = bundleForm.items
       .filter((item) => item.product_id !== "")
@@ -1014,6 +1030,7 @@ const getProductById = useCallback(
         price: currentPrice,
         old_price:
           oldPrice === null ? "" : oldPrice,
+          stock: bundleStock,
         category:
           bundleForm.category.trim() || "Bundle Offers",
         is_active: bundleForm.is_active,
@@ -1453,6 +1470,16 @@ const getProductById = useCallback(
                 placeholder="Bundle price"
               />
 
+                <input
+    name="stock"
+    type="number"
+    min="1"
+    step="1"
+    value={bundleForm.stock}
+    onChange={handleBundleFieldChange}
+    placeholder="Available bundle quantity"
+  />
+
               <input
                 name="category"
                 value={bundleForm.category}
@@ -1739,7 +1766,16 @@ const getProductById = useCallback(
                       </div>
 
                       <p>
-                        Available bundle stock: {bundle.stock}
+                        Available now:{" "}
+                        <strong>{bundle.stock}</strong>
+                      </p>
+
+                      <p>
+                        Admin remaining quantity:{" "}
+                        <strong>
+                          {bundle.configured_stock ??
+                            bundle.stock}
+                        </strong>
                       </p>
 
                       <p>

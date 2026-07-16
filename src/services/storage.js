@@ -1266,6 +1266,13 @@ function createBundleFormData(bundleData) {
     );
   }
 
+  if (bundleData.stock !== undefined) {
+    formData.append(
+      "stock",
+      Number(bundleData.stock)
+    );
+  }
+
   if (bundleData.category !== undefined) {
     formData.append(
       "category",
