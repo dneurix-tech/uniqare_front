@@ -2,17 +2,22 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   addAnnouncement,
+  addBundle,
   addCoupon,
   addProduct,
   deleteAnnouncement,
+  deleteBundle,
+  deleteBundleImage,
   deleteCoupon,
   deleteOrder,
   deleteProduct,
   getAdminAnnouncements,
+  getAdminBundles,
   getAdminCoupons,
   getAdminProducts,
   getOrders,
   updateAnnouncement,
+  updateBundle,
   updateCoupon,
   updateOrderDetails,
   updateProduct,
@@ -60,6 +65,28 @@ const emptyCouponForm = {
   is_active: true,
 };
 
+const emptyBundleForm = {
+  name: "",
+  short_description: "",
+  long_description: "",
+  price: "",
+  old_price: "",
+  category: "Bundle Offers",
+  is_active: true,
+  images: [],
+  existing_images: [],
+  items: [
+    {
+      product_id: "",
+      quantity: 1,
+    },
+    {
+      product_id: "",
+      quantity: 1,
+    },
+  ],
+};
+
 const emptyAnnouncementForm = {
   content: "",
   is_active: true,
@@ -73,11 +100,13 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [coupons, setCoupons] = useState([]);
+  const [bundles, setBundles] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
 
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingCoupons, setLoadingCoupons] = useState(true);
+  const [loadingBundles, setLoadingBundles] = useState(true);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
 
   const [editingId, setEditingId] = useState(null);
@@ -92,6 +121,12 @@ export default function AdminDashboard() {
   const [couponForm, setCouponForm] = useState(emptyCouponForm);
   const [savingCoupon, setSavingCoupon] = useState(false);
 
+  const [editingBundleId, setEditingBundleId] = useState(null);
+  const [bundleForm, setBundleForm] = useState(emptyBundleForm);
+  const [bundleImageInputKey, setBundleImageInputKey] =
+    useState(Date.now());
+  const [savingBundle, setSavingBundle] = useState(false);
+
   const [editingAnnouncementId, setEditingAnnouncementId] =
     useState(null);
   const [announcementForm, setAnnouncementForm] = useState(
@@ -103,6 +138,7 @@ export default function AdminDashboard() {
     loadProducts();
     loadOrders();
     loadCoupons();
+    loadBundles();
     loadAnnouncements();
   }, []);
 
@@ -142,6 +178,19 @@ export default function AdminDashboard() {
       setCoupons([]);
     } finally {
       setLoadingCoupons(false);
+    }
+  }
+
+  async function loadBundles() {
+    try {
+      setLoadingBundles(true);
+      const data = await getAdminBundles();
+      setBundles(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setBundles([]);
+    } finally {
+      setLoadingBundles(false);
     }
   }
 
@@ -788,6 +837,268 @@ const getProductById = useCallback(
   }
 
   /* =========================
+     Bundles
+  ========================= */
+
+  function handleBundleFieldChange(event) {
+    const { name, value, type, checked, files } = event.target;
+
+    if (type === "file") {
+      setBundleForm((prev) => ({
+        ...prev,
+        images: Array.from(files || []),
+      }));
+      return;
+    }
+
+    setBundleForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  }
+
+  function handleBundleItemChange(index, field, value) {
+    setBundleForm((prev) => ({
+      ...prev,
+      items: prev.items.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              [field]:
+                field === "quantity"
+                  ? Math.max(1, Number(value) || 1)
+                  : value,
+            }
+          : item
+      ),
+    }));
+  }
+
+  function addBundleProductRow() {
+    setBundleForm((prev) => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          product_id: "",
+          quantity: 1,
+        },
+      ],
+    }));
+  }
+
+  function removeBundleProductRow(index) {
+    setBundleForm((prev) => {
+      if (prev.items.length <= 2) {
+        alert("A bundle must contain at least two products");
+        return prev;
+      }
+
+      return {
+        ...prev,
+        items: prev.items.filter(
+          (_, itemIndex) => itemIndex !== index
+        ),
+      };
+    });
+  }
+
+  function startEditBundle(bundle) {
+    setEditingBundleId(bundle.id);
+
+    setBundleForm({
+      name: bundle.name || "",
+      short_description: bundle.short_description || "",
+      long_description: bundle.long_description || "",
+      price: bundle.price ?? "",
+      old_price: bundle.old_price ?? "",
+      category: bundle.category || "Bundle Offers",
+      is_active: Boolean(bundle.is_active),
+      images: [],
+      existing_images: Array.isArray(bundle.images)
+        ? bundle.images
+        : [],
+      items:
+        Array.isArray(bundle.bundle_items) &&
+        bundle.bundle_items.length >= 2
+          ? bundle.bundle_items.map((item) => ({
+              product_id: String(item.product_id),
+              quantity: Number(item.quantity || 1),
+            }))
+          : emptyBundleForm.items,
+    });
+
+    setBundleImageInputKey(Date.now());
+    setActiveTab("bundles");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEditBundle() {
+    setEditingBundleId(null);
+    setBundleForm(emptyBundleForm);
+    setBundleImageInputKey(Date.now());
+  }
+
+  async function handleBundleSubmit(event) {
+    event.preventDefault();
+
+    const name = bundleForm.name.trim();
+    const currentPrice = Number(bundleForm.price);
+    const oldPrice =
+      bundleForm.old_price === ""
+        ? null
+        : Number(bundleForm.old_price);
+
+    const normalizedItems = bundleForm.items
+      .filter((item) => item.product_id !== "")
+      .map((item) => ({
+        product_id: Number(item.product_id),
+        quantity: Number(item.quantity),
+      }));
+
+    const uniqueProductIds = new Set(
+      normalizedItems.map((item) => item.product_id)
+    );
+
+    if (!name) {
+      alert("Bundle name is required");
+      return;
+    }
+
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      alert("Bundle price must be greater than 0");
+      return;
+    }
+
+    if (
+      oldPrice !== null &&
+      (!Number.isFinite(oldPrice) || oldPrice <= currentPrice)
+    ) {
+      alert("Old price must be greater than bundle price");
+      return;
+    }
+
+    if (
+      normalizedItems.length < 2 ||
+      uniqueProductIds.size < 2
+    ) {
+      alert("Select at least two different products");
+      return;
+    }
+
+    if (
+      normalizedItems.some(
+        (item) =>
+          !Number.isInteger(item.quantity) ||
+          item.quantity <= 0
+      )
+    ) {
+      alert("Every bundle quantity must be a positive whole number");
+      return;
+    }
+
+    if (!editingBundleId && bundleForm.images.length === 0) {
+      alert("Upload at least one bundle image");
+      return;
+    }
+
+    try {
+      setSavingBundle(true);
+
+      const payload = {
+        name,
+        short_description:
+          bundleForm.short_description.trim(),
+        long_description:
+          bundleForm.long_description.trim(),
+        price: currentPrice,
+        old_price:
+          oldPrice === null ? "" : oldPrice,
+        category:
+          bundleForm.category.trim() || "Bundle Offers",
+        is_active: bundleForm.is_active,
+        items: normalizedItems,
+        images: bundleForm.images,
+      };
+
+      if (editingBundleId) {
+        await updateBundle(editingBundleId, payload);
+      } else {
+        await addBundle(payload);
+      }
+
+      await Promise.all([
+        loadBundles(),
+        loadProducts(),
+      ]);
+
+      cancelEditBundle();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to save bundle");
+    } finally {
+      setSavingBundle(false);
+    }
+  }
+
+  async function handleBundleToggle(bundle) {
+    try {
+      await updateBundle(bundle.id, {
+        is_active: !bundle.is_active,
+      });
+
+      await loadBundles();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update bundle");
+    }
+  }
+
+  async function handleBundleDelete(bundleId) {
+    const confirmed = window.confirm(
+      "Delete this bundle permanently?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteBundle(bundleId);
+      await loadBundles();
+
+      if (editingBundleId === bundleId) {
+        cancelEditBundle();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete bundle");
+    }
+  }
+
+  async function handleBundleImageDelete(bundleId, imageId) {
+    const confirmed = window.confirm(
+      "Delete this bundle image?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteBundleImage(bundleId, imageId);
+
+      setBundleForm((prev) => ({
+        ...prev,
+        existing_images: prev.existing_images.filter(
+          (image) => image.id !== imageId
+        ),
+      }));
+
+      await loadBundles();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete bundle image");
+    }
+  }
+
+  /* =========================
      Announcements
   ========================= */
 
@@ -889,7 +1200,7 @@ const getProductById = useCallback(
       <header className={styles.topbar}>
         <div>
           <h1>UNIQARE Admin Dashboard</h1>
-          <p>Manage products, orders, coupons, reviews, and stock</p>
+          <p>Manage products, bundles, orders, coupons, reviews, and stock</p>
         </div>
 
         <button
@@ -908,6 +1219,14 @@ const getProductById = useCallback(
           onClick={() => setActiveTab("products")}
         >
           Products
+        </button>
+
+        <button
+          type="button"
+          className={activeTab === "bundles" ? styles.activeTab : ""}
+          onClick={() => setActiveTab("bundles")}
+        >
+          Bundles
         </button>
 
         <button
@@ -1091,6 +1410,397 @@ const getProductById = useCallback(
               })
             )}
           </div>
+        </section>
+      )}
+
+      {activeTab === "bundles" && (
+        <section className={styles.section}>
+          <form
+            className={styles.productForm}
+            onSubmit={handleBundleSubmit}
+          >
+            <h2>
+              {editingBundleId
+                ? "Edit Bundle"
+                : "Create New Bundle"}
+            </h2>
+
+            <div className={styles.formGrid}>
+              <input
+                name="name"
+                value={bundleForm.name}
+                onChange={handleBundleFieldChange}
+                placeholder="Bundle name"
+              />
+
+              <input
+                name="old_price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={bundleForm.old_price}
+                onChange={handleBundleFieldChange}
+                placeholder="Old price (optional)"
+              />
+
+              <input
+                name="price"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={bundleForm.price}
+                onChange={handleBundleFieldChange}
+                placeholder="Bundle price"
+              />
+
+              <input
+                name="category"
+                value={bundleForm.category}
+                onChange={handleBundleFieldChange}
+                placeholder="Category"
+              />
+
+              <label className={styles.checkboxField}>
+                <input
+                  name="is_active"
+                  type="checkbox"
+                  checked={bundleForm.is_active}
+                  onChange={handleBundleFieldChange}
+                />
+                Active
+              </label>
+
+              <input
+                key={bundleImageInputKey}
+                name="images"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleBundleFieldChange}
+              />
+            </div>
+
+            <textarea
+              name="short_description"
+              value={bundleForm.short_description}
+              onChange={handleBundleFieldChange}
+              placeholder="Short bundle description"
+            />
+
+            <textarea
+              name="long_description"
+              value={bundleForm.long_description}
+              onChange={handleBundleFieldChange}
+              placeholder="Full bundle details"
+            />
+
+            <div className={styles.orderEditor}>
+              <div className={styles.orderEditorHeader}>
+                <div>
+                  <h3>Bundle Products</h3>
+                  <p>
+                    Select at least two different products and set
+                    the required quantity for each one.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  onClick={addBundleProductRow}
+                >
+                  Add Product Row
+                </button>
+              </div>
+
+              <div className={styles.editOrderItems}>
+                {bundleForm.items.map((item, index) => (
+                  <div
+                    className={styles.editOrderItem}
+                    key={`bundle-item-${index}`}
+                  >
+                    <select
+                      value={item.product_id}
+                      onChange={(event) =>
+                        handleBundleItemChange(
+                          index,
+                          "product_id",
+                          event.target.value
+                        )
+                      }
+                    >
+                      <option value="">Select product</option>
+
+                      {products.map((product) => (
+                        <option
+                          key={product.id}
+                          value={product.id}
+                        >
+                          {product.name} — Stock: {product.stock}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className={styles.quantityEditor}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleBundleItemChange(
+                            index,
+                            "quantity",
+                            Number(item.quantity) - 1
+                          )
+                        }
+                      >
+                        −
+                      </button>
+
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={item.quantity}
+                        onChange={(event) =>
+                          handleBundleItemChange(
+                            index,
+                            "quantity",
+                            event.target.value
+                          )
+                        }
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleBundleItemChange(
+                            index,
+                            "quantity",
+                            Number(item.quantity) + 1
+                          )
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.removeItemButton}
+                      onClick={() =>
+                        removeBundleProductRow(index)
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {bundleForm.images.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  marginTop: "16px",
+                }}
+              >
+                {bundleForm.images.map((image, index) => (
+                  <img
+                    key={`${image.name}-${index}`}
+                    src={URL.createObjectURL(image)}
+                    alt={`New bundle ${index + 1}`}
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {editingBundleId &&
+              bundleForm.existing_images.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                    marginTop: "16px",
+                  }}
+                >
+                  {bundleForm.existing_images.map((image) => (
+                    <div
+                      key={image.id}
+                      style={{ position: "relative" }}
+                    >
+                      <img
+                        src={image.image_url}
+                        alt="Existing bundle"
+                        style={{
+                          width: "100px",
+                          height: "100px",
+                          objectFit: "cover",
+                          borderRadius: "12px",
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() =>
+                          handleBundleImageDelete(
+                            editingBundleId,
+                            image.id
+                          )
+                        }
+                        style={{
+                          position: "absolute",
+                          top: "5px",
+                          right: "5px",
+                          padding: "4px 8px",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            <div className={styles.formActions}>
+              <button
+                className={styles.primaryButton}
+                type="submit"
+                disabled={savingBundle}
+              >
+                {savingBundle
+                  ? "Saving..."
+                  : editingBundleId
+                    ? "Update Bundle"
+                    : "Create Bundle"}
+              </button>
+
+              {editingBundleId && (
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={cancelEditBundle}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+
+          {loadingBundles ? (
+            <p>Loading bundles...</p>
+          ) : bundles.length === 0 ? (
+            <p className={styles.emptyText}>
+              No bundles created yet.
+            </p>
+          ) : (
+            <div className={styles.productsList}>
+              {bundles.map((bundle) => {
+                const images = Array.isArray(bundle.images)
+                  ? bundle.images
+                  : [];
+
+                return (
+                  <article
+                    className={styles.adminProductCard}
+                    key={bundle.id}
+                  >
+                    <img
+                      src={
+                        images[0]?.image_url ||
+                        bundle.image_url
+                      }
+                      alt={bundle.name}
+                    />
+
+                    <div>
+                      <h3>{bundle.name}</h3>
+
+                      <div className={styles.adminPriceBox}>
+                        {Number(bundle.old_price || 0) >
+                          Number(bundle.price || 0) && (
+                          <span className={styles.adminOldPrice}>
+                            {bundle.old_price} EGP
+                          </span>
+                        )}
+
+                        <strong className={styles.adminCurrentPrice}>
+                          {bundle.price} EGP
+                        </strong>
+                      </div>
+
+                      <p>
+                        Available bundle stock: {bundle.stock}
+                      </p>
+
+                      <p>
+                        {Array.isArray(bundle.bundle_items)
+                          ? bundle.bundle_items
+                              .map(
+                                (item) =>
+                                  `${item.quantity} × ${item.product_name}`
+                              )
+                              .join(" • ")
+                          : ""}
+                      </p>
+
+                      <span
+                        className={`${styles.statusBadge} ${
+                          bundle.is_active &&
+                          Number(bundle.stock || 0) > 0
+                            ? styles.available
+                            : styles.soldOut
+                        }`}
+                      >
+                        {bundle.is_active
+                          ? Number(bundle.stock || 0) > 0
+                            ? "Active"
+                            : "Sold Out"
+                          : "Inactive"}
+                      </span>
+                    </div>
+
+                    <div className={styles.cardActions}>
+                      <button
+                        type="button"
+                        onClick={() => startEditBundle(bundle)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleBundleToggle(bundle)}
+                      >
+                        {bundle.is_active
+                          ? "Disable"
+                          : "Activate"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() =>
+                          handleBundleDelete(bundle.id)
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
 

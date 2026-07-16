@@ -228,6 +228,8 @@ function removeCartItem(productId) {
       <Header />
 
       <main className={styles.page}>
+
+
         <button
           type="button"
           className={styles.cartFloatingButton}
@@ -393,16 +395,26 @@ className={`${styles.cartMessage} ${
               </p>
             </div>
 
-            <button
-              type="button"
-              className={styles.cartHeaderButton}
-              onClick={() => {
-                setCart(getCartItems());
-                setCartOpen(true);
-              }}
-            >
-              🛒 Cart {cartCount > 0 && `(${cartCount})`}
-            </button>
+            <div className={styles.headerActions}>
+              <button
+                type="button"
+                className={styles.bundlesHeaderButton}
+                onClick={() => navigate("/bundles")}
+              >
+                🎁 Bundles
+              </button>
+
+              <button
+                type="button"
+                className={styles.cartHeaderButton}
+                onClick={() => {
+                  setCart(getCartItems());
+                  setCartOpen(true);
+                }}
+              >
+                🛒 Cart {cartCount > 0 && `(${cartCount})`}
+              </button>
+            </div>
           </div>
 
           {loading && <p>Loading products...</p>}

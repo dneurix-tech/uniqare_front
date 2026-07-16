@@ -1,0 +1,628 @@
+.page {
+  min-height: 100vh;
+  padding: 48px 5% 80px;
+  background:
+    radial-gradient(circle at top left, rgba(235, 192, 202, 0.35), transparent 35%),
+    linear-gradient(180deg, #fff 0%, #fff8fa 100%);
+  color: #2f1f25;
+}
+
+.floatingActions {
+  position: fixed;
+  right: 22px;
+
+  /* Leave room for the WhatsApp floating button. */
+  bottom: 92px;
+
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+/* Cart stays above the Products button. */
+.cartFloatingButton {
+  order: 1;
+}
+
+.homeFloatingButton {
+  order: 2;
+}
+
+.homeFloatingButton,
+.cartFloatingButton {
+  border: 0;
+  box-shadow: 0 12px 30px rgba(137, 32, 71, 0.24);
+  cursor: pointer;
+}
+
+.homeFloatingButton {
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #892047;
+  font-weight: 800;
+}
+
+.cartFloatingButton {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #892047;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.cartFloatingButton > span {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: #892047;
+  font-size: 12px;
+  font-weight: 900;
+  border: 2px solid #892047;
+}
+
+.hero {
+  max-width: 1180px;
+  margin: 0 auto 52px;
+  padding: 60px 42px;
+  border-radius: 32px;
+  text-align: center;
+  background:
+    linear-gradient(135deg, rgba(137, 32, 71, 0.96), rgba(132, 95, 105, 0.92));
+  color: #ffffff;
+  box-shadow: 0 24px 55px rgba(137, 32, 71, 0.18);
+}
+
+.hero > span {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(36px, 6vw, 68px);
+  line-height: 1;
+}
+
+.hero p {
+  max-width: 650px;
+  margin: 20px auto 0;
+  font-size: 18px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.heroActions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.heroActions button,
+.emptyState button {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.heroActions button:first-child {
+  background: #ffffff;
+  color: #892047;
+}
+
+.heroActions button:last-child {
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.bundlesSection {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  margin-bottom: 28px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionHeader span {
+  color: #892047;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sectionHeader h2 {
+  margin: 6px 0 0;
+  font-size: clamp(28px, 4vw, 44px);
+}
+
+.sectionHeader p {
+  margin: 0;
+  color: #845f69;
+  font-weight: 700;
+}
+
+.bundlesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+}
+
+.bundleCard {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  background: #ffffff;
+  border: 1px solid rgba(137, 32, 71, 0.1);
+  border-radius: 28px;
+  box-shadow: 0 18px 45px rgba(71, 42, 53, 0.09);
+}
+
+.imageBox {
+  position: relative;
+  min-height: 430px;
+  overflow: hidden;
+  background: #f7e9ed;
+}
+
+.bundleImage,
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+}
+
+.bundleImage {
+  display: block;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  display: grid;
+  place-items: center;
+  color: #845f69;
+  font-weight: 800;
+}
+
+.bundleBadge,
+.discountBadge {
+  position: absolute;
+  top: 16px;
+  z-index: 3;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.bundleBadge {
+  left: 16px;
+  background: #ffffff;
+  color: #892047;
+}
+
+.discountBadge {
+  right: 16px;
+  background: #892047;
+  color: #ffffff;
+}
+
+.sliderButton {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #892047;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.13);
+}
+
+.previousButton {
+  left: 14px;
+}
+
+.nextButton {
+  right: 14px;
+}
+
+.imageDots {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 3;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+}
+
+.imageDots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+}
+
+.imageDots .activeDot {
+  width: 24px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.bundleContent {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bundleContent h2 {
+  margin: 0;
+  font-size: 30px;
+  color: #4b2735;
+}
+
+.description {
+  margin: 12px 0 22px;
+  color: #715762;
+  line-height: 1.65;
+}
+
+.includedProducts {
+  padding: 18px;
+  border-radius: 18px;
+  background: #fff7f9;
+}
+
+.includedProducts h3 {
+  margin: 0 0 12px;
+  color: #892047;
+  font-size: 15px;
+}
+
+.includedProducts ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.includedProducts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #50333e;
+}
+
+.includedProducts li img {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.priceBox {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.oldPrice {
+  color: #9f8991;
+  text-decoration: line-through;
+  font-size: 16px;
+}
+
+.currentPrice {
+  color: #892047;
+  font-size: 30px;
+}
+
+.stockText {
+  margin: 8px 0 16px;
+  color: #6c535c;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.addButton {
+  min-height: 52px;
+  border: 0;
+  border-radius: 15px;
+  background: #892047;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.addButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.statusText,
+.errorText,
+.emptyState {
+  padding: 40px;
+  text-align: center;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.errorText {
+  color: #b42318;
+}
+
+.emptyState h2 {
+  margin-top: 0;
+}
+
+.emptyState button {
+  margin-top: 12px;
+  background: #892047;
+  color: #ffffff;
+}
+
+.cartMessage {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 2000;
+  width: min(430px, calc(100% - 32px));
+  transform: translateX(-50%);
+  padding: 16px 48px 16px 18px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
+.cartMessage strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.cartMessage p {
+  margin: 0;
+}
+
+.cartMessage > button {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.cartSuccessMessage {
+  border-left: 5px solid #2d9d61;
+}
+
+.cartErrorMessage {
+  border-left: 5px solid #d92d20;
+}
+
+.cartRemovedMessage {
+  border-left: 5px solid #845f69;
+}
+
+.cartOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+}
+
+.cartBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 14, 18, 0.55);
+}
+
+.cartDrawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(430px, 92vw);
+  height: 100%;
+  padding: 22px;
+  overflow-y: auto;
+  background: #ffffff;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.18);
+}
+
+.cartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.cartHeader button {
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.emptyCart {
+  padding: 40px 0;
+  text-align: center;
+  color: #845f69;
+}
+
+.cartItems {
+  display: grid;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.cartItem {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.cartItem > img {
+  width: 82px;
+  height: 82px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.cartItem h4 {
+  margin: 0 0 6px;
+}
+
+.cartItem p {
+  margin: 0 0 10px;
+  color: #892047;
+  font-weight: 800;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quantityControls button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e3c8d0;
+  border-radius: 8px;
+  background: #fff7f9;
+  cursor: pointer;
+}
+
+.removeButton {
+  margin-top: 10px;
+  border: 0;
+  background: transparent;
+  color: #b42318;
+  cursor: pointer;
+}
+
+.cartFooter {
+  position: sticky;
+  bottom: -22px;
+  margin: 10px -22px -22px;
+  padding: 20px 22px;
+  background: #ffffff;
+  border-top: 1px solid #eee;
+}
+
+.cartFooter > div {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cartFooter > button {
+  width: 100%;
+  min-height: 50px;
+  border: 0;
+  border-radius: 14px;
+  background: #892047;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .bundlesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 28px 16px 90px;
+  }
+
+  .hero {
+    padding: 44px 20px;
+    border-radius: 24px;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bundleCard {
+    grid-template-columns: 1fr;
+  }
+
+  .imageBox,
+  .bundleImage,
+  .imagePlaceholder {
+    min-height: 330px;
+  }
+
+  .bundleContent {
+    padding: 22px;
+  }
+
+  .floatingActions {
+    right: 14px;
+
+    /* Keep both buttons above the mobile WhatsApp button. */
+    bottom: 82px;
+  }
+
+  .homeFloatingButton {
+    min-height: 48px;
+    padding: 0 14px;
+  }
+
+  .cartFloatingButton {
+    width: 52px;
+    height: 52px;
+  }
+}

@@ -410,3 +410,50 @@
 .cartRemovedMessage .cartMessageIcon {
   background: #845f69;
 }
+
+/* =========================
+   Bundles buttons
+   Add these rules to the end of Home.module.css
+========================= */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bundlesHeaderButton {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #892047;
+  border-radius: 999px;
+  background: #fff7f9;
+  color: #892047;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.bundlesHeaderButton:hover {
+  transform: translateY(-2px);
+  background: #892047;
+  color: #ffffff;
+}
+
+
+@media (max-width: 650px) {
+  .headerActions {
+    width: 100%;
+  }
+
+  .bundlesHeaderButton,
+  .cartHeaderButton {
+    flex: 1;
+  }
+
+
+}

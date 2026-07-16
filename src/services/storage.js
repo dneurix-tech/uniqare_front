@@ -1,4 +1,4 @@
-const API_URL = "https://uniqare-production.up.railway.app";
+const API_URL = "http://127.0.0.1:8000";
 
 /* =========================
    Helpers
@@ -1171,6 +1171,234 @@ export async function deleteAnnouncement(announcementId) {
 
   return response.json();
 }
+
+/* =========================
+   Bundles
+   Paste this section inside src/services/storage.js
+   before "Old compatibility".
+========================= */
+
+export async function getPublicBundles() {
+  const response = await fetch(
+    `${API_URL}/bundles/`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Failed to load bundles"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const bundles = await response.json();
+
+  return Array.isArray(bundles)
+    ? bundles
+    : [];
+}
+
+export async function getAdminBundles() {
+  const response = await fetch(
+    `${API_URL}/bundles/admin/all`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Failed to load admin bundles"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const bundles = await response.json();
+
+  return Array.isArray(bundles)
+    ? bundles
+    : [];
+}
+
+function createBundleFormData(bundleData) {
+  const formData = new FormData();
+
+  if (bundleData.name !== undefined) {
+    formData.append(
+      "name",
+      bundleData.name
+    );
+  }
+
+  if (bundleData.short_description !== undefined) {
+    formData.append(
+      "short_description",
+      bundleData.short_description || ""
+    );
+  }
+
+  if (bundleData.long_description !== undefined) {
+    formData.append(
+      "long_description",
+      bundleData.long_description || ""
+    );
+  }
+
+  if (bundleData.price !== undefined) {
+    formData.append(
+      "price",
+      bundleData.price
+    );
+  }
+
+  if (bundleData.old_price !== undefined) {
+    formData.append(
+      "old_price",
+      bundleData.old_price ?? ""
+    );
+  }
+
+  if (bundleData.category !== undefined) {
+    formData.append(
+      "category",
+      bundleData.category || "Bundle Offers"
+    );
+  }
+
+  if (bundleData.is_active !== undefined) {
+    formData.append(
+      "is_active",
+      bundleData.is_active ? "true" : "false"
+    );
+  }
+
+  if (Array.isArray(bundleData.items)) {
+    formData.append(
+      "items_json",
+      JSON.stringify(
+        bundleData.items.map((item) => ({
+          product_id: Number(item.product_id),
+          quantity: Number(item.quantity),
+        }))
+      )
+    );
+  }
+
+  if (Array.isArray(bundleData.images)) {
+    bundleData.images.forEach((image) => {
+      if (image instanceof File) {
+        formData.append("images", image);
+      }
+    });
+  }
+
+  return formData;
+}
+
+export async function addBundle(bundleData) {
+  const formData = createBundleFormData(
+    bundleData
+  );
+
+  const response = await fetch(
+    `${API_URL}/bundles/`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Failed to add bundle"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function updateBundle(
+  bundleId,
+  bundleData
+) {
+  const formData = createBundleFormData(
+    bundleData
+  );
+
+  const response = await fetch(
+    `${API_URL}/bundles/${bundleId}`,
+    {
+      method: "PATCH",
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Failed to update bundle"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function deleteBundle(bundleId) {
+  const response = await fetch(
+    `${API_URL}/bundles/${bundleId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Failed to delete bundle"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function deleteBundleImage(
+  bundleId,
+  imageId
+) {
+  const response = await fetch(
+    `${API_URL}/bundles/${bundleId}/images/${imageId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Failed to delete bundle image"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
 
 /* =========================
    Old compatibility
