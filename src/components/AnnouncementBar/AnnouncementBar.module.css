@@ -6,8 +6,8 @@
   min-height: 42px;
   display: flex;
   align-items: center;
-  background: #892047;
-  color: #ffffff;
+  background: #fff8f5;
+  color: #6a1010;
 }
 
 .track {
@@ -36,13 +36,13 @@
 }
 
 .icon {
-  color: #ebc0ca;
+  color: #6a1010;
   font-size: 13px;
 }
 
 .separator {
   margin-left: 12px;
-  color: #ebc0ca;
+  color: #6a1010;
 }
 
 @keyframes announcementScroll {
