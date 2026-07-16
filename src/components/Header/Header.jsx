@@ -1,5 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import styles from "./Header.module.css";
+import AnnouncementBar from "../AnnouncementBar/AnnouncementBar";
 
 export default function Header() {
   function getNavLinkClass({ isActive }) {
@@ -8,7 +9,10 @@ export default function Header() {
       : styles.navLink;
   }
 
-  return (
+return (
+  <>
+    <AnnouncementBar />
+
     <header className={styles.header}>
       <div className={styles.headerBackground}>
         <img
@@ -64,5 +68,6 @@ export default function Header() {
         </nav>
       </div>
     </header>
-  );
+  </>
+);
 }

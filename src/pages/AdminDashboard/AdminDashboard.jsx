@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  addAnnouncement,
   addCoupon,
   addProduct,
+  deleteAnnouncement,
   deleteCoupon,
   deleteOrder,
   deleteProduct,
+  getAdminAnnouncements,
   getAdminCoupons,
   getAdminProducts,
   getOrders,
+  updateAnnouncement,
   updateCoupon,
   updateOrderDetails,
   updateProduct,
@@ -56,6 +60,11 @@ const emptyCouponForm = {
   is_active: true,
 };
 
+const emptyAnnouncementForm = {
+  content: "",
+  is_active: true,
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
@@ -64,10 +73,12 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [coupons, setCoupons] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingCoupons, setLoadingCoupons] = useState(true);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
 
   const [editingId, setEditingId] = useState(null);
   const [productForm, setProductForm] = useState(emptyProductForm);
@@ -81,10 +92,18 @@ export default function AdminDashboard() {
   const [couponForm, setCouponForm] = useState(emptyCouponForm);
   const [savingCoupon, setSavingCoupon] = useState(false);
 
+  const [editingAnnouncementId, setEditingAnnouncementId] =
+    useState(null);
+  const [announcementForm, setAnnouncementForm] = useState(
+    emptyAnnouncementForm
+  );
+  const [savingAnnouncement, setSavingAnnouncement] = useState(false);
+
   useEffect(() => {
     loadProducts();
     loadOrders();
     loadCoupons();
+    loadAnnouncements();
   }, []);
 
   async function loadProducts() {
@@ -123,6 +142,19 @@ export default function AdminDashboard() {
       setCoupons([]);
     } finally {
       setLoadingCoupons(false);
+    }
+  }
+
+  async function loadAnnouncements() {
+    try {
+      setLoadingAnnouncements(true);
+      const data = await getAdminAnnouncements();
+      setAnnouncements(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setAnnouncements([]);
+    } finally {
+      setLoadingAnnouncements(false);
     }
   }
 
@@ -755,6 +787,103 @@ const getProductById = useCallback(
     }
   }
 
+  /* =========================
+     Announcements
+  ========================= */
+
+  function handleAnnouncementChange(event) {
+    const { name, value, type, checked } = event.target;
+
+    setAnnouncementForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  }
+
+  function startEditAnnouncement(announcement) {
+    setEditingAnnouncementId(announcement.id);
+
+    setAnnouncementForm({
+      content: announcement.content || "",
+      is_active: Boolean(announcement.is_active),
+    });
+
+    setActiveTab("announcements");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEditAnnouncement() {
+    setEditingAnnouncementId(null);
+    setAnnouncementForm(emptyAnnouncementForm);
+  }
+
+  async function handleAnnouncementSubmit(event) {
+    event.preventDefault();
+
+    const content = announcementForm.content.trim();
+
+    if (!content) {
+      alert("Announcement content is required");
+      return;
+    }
+
+    try {
+      setSavingAnnouncement(true);
+
+      const payload = {
+        content,
+        is_active: announcementForm.is_active,
+      };
+
+      if (editingAnnouncementId) {
+        await updateAnnouncement(editingAnnouncementId, payload);
+      } else {
+        await addAnnouncement(payload);
+      }
+
+      await loadAnnouncements();
+      cancelEditAnnouncement();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to save announcement");
+    } finally {
+      setSavingAnnouncement(false);
+    }
+  }
+
+  async function handleAnnouncementToggle(announcement) {
+    try {
+      await updateAnnouncement(announcement.id, {
+        is_active: !announcement.is_active,
+      });
+
+      await loadAnnouncements();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update announcement");
+    }
+  }
+
+  async function handleAnnouncementDelete(announcementId) {
+    const confirmed = window.confirm(
+      "Delete this announcement permanently?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteAnnouncement(announcementId);
+      await loadAnnouncements();
+
+      if (editingAnnouncementId === announcementId) {
+        cancelEditAnnouncement();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete announcement");
+    }
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.topbar}>
@@ -803,6 +932,16 @@ const getProductById = useCallback(
           onClick={() => setActiveTab("reviews")}
         >
           Reviews
+        </button>
+
+        <button
+          type="button"
+          className={
+            activeTab === "announcements" ? styles.activeTab : ""
+          }
+          onClick={() => setActiveTab("announcements")}
+        >
+          Announcements
         </button>
       </div>
 
@@ -1584,6 +1723,152 @@ const getProductById = useCallback(
                   </article>
                 );
               })}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "announcements" && (
+        <section className={styles.section}>
+          <form
+            className={styles.productForm}
+            onSubmit={handleAnnouncementSubmit}
+          >
+            <h2>
+              {editingAnnouncementId
+                ? "Edit Announcement"
+                : "Add New Announcement"}
+            </h2>
+
+            <textarea
+              name="content"
+              value={announcementForm.content}
+              onChange={handleAnnouncementChange}
+              placeholder="Example: Get 10% off orders over 1000 EGP"
+              maxLength={300}
+              rows={4}
+            />
+
+            <p>
+              {announcementForm.content.length} / 300 characters
+            </p>
+
+            <label className={styles.checkboxField}>
+              <input
+                name="is_active"
+                type="checkbox"
+                checked={announcementForm.is_active}
+                onChange={handleAnnouncementChange}
+              />
+              Show this announcement on the website
+            </label>
+
+            <div className={styles.formActions}>
+              <button
+                className={styles.primaryButton}
+                type="submit"
+                disabled={savingAnnouncement}
+              >
+                {savingAnnouncement
+                  ? "Saving..."
+                  : editingAnnouncementId
+                    ? "Update Announcement"
+                    : "Add Announcement"}
+              </button>
+
+              {editingAnnouncementId && (
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={cancelEditAnnouncement}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+
+          {loadingAnnouncements ? (
+            <p>Loading announcements...</p>
+          ) : announcements.length === 0 ? (
+            <p className={styles.emptyText}>
+              No announcements created yet.
+            </p>
+          ) : (
+            <div className={styles.couponsList}>
+              {announcements.map((announcement) => (
+                <article
+                  className={styles.couponCard}
+                  key={announcement.id}
+                >
+                  <div className={styles.couponTop}>
+                    <div>
+                      <h3>Announcement #{announcement.id}</h3>
+                      <p>{announcement.content}</p>
+                    </div>
+
+                    <span
+                      className={`${styles.statusBadge} ${
+                        announcement.is_active
+                          ? styles.available
+                          : styles.soldOut
+                      }`}
+                    >
+                      {announcement.is_active
+                        ? "Active"
+                        : "Inactive"}
+                    </span>
+                  </div>
+
+                  <div className={styles.couponDetails}>
+                    <span>
+                      Created:{" "}
+                      <strong>
+                        {formatDate(announcement.created_at)}
+                      </strong>
+                    </span>
+
+                    <span>
+                      Updated:{" "}
+                      <strong>
+                        {formatDate(announcement.updated_at)}
+                      </strong>
+                    </span>
+                  </div>
+
+                  <div className={styles.cardActions}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startEditAnnouncement(announcement)
+                      }
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleAnnouncementToggle(announcement)
+                      }
+                    >
+                      {announcement.is_active
+                        ? "Disable"
+                        : "Activate"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.deleteButton}
+                      onClick={() =>
+                        handleAnnouncementDelete(announcement.id)
+                      }
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </section>

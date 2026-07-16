@@ -1059,6 +1059,120 @@ export async function deleteReview(
 }
 
 /* =========================
+   Announcements
+========================= */
+
+export async function getActiveAnnouncements() {
+  const response = await fetch(`${API_URL}/announcements/`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(
+      error?.detail || "Failed to load announcements"
+    );
+  }
+
+  const announcements = await response.json();
+
+  return Array.isArray(announcements)
+    ? announcements
+    : [];
+}
+
+export async function getAdminAnnouncements() {
+  const response = await fetch(
+    `${API_URL}/announcements/admin/all`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(
+      error?.detail || "Failed to load announcements"
+    );
+  }
+
+  const announcements = await response.json();
+
+  return Array.isArray(announcements)
+    ? announcements
+    : [];
+}
+
+export async function addAnnouncement(announcementData) {
+  const response = await fetch(`${API_URL}/announcements/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(announcementData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(
+      error?.detail || "Failed to add announcement"
+    );
+  }
+
+  return response.json();
+}
+
+export async function updateAnnouncement(
+  announcementId,
+  announcementData
+) {
+  const response = await fetch(
+    `${API_URL}/announcements/${announcementId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(announcementData),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(
+      error?.detail || "Failed to update announcement"
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteAnnouncement(announcementId) {
+  const response = await fetch(
+    `${API_URL}/announcements/${announcementId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(
+      error?.detail || "Failed to delete announcement"
+    );
+  }
+
+  return response.json();
+}
+
+/* =========================
    Old compatibility
 ========================= */
 

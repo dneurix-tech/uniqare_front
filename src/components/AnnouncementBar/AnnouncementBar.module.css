@@ -1,0 +1,82 @@
+.bar {
+  position: relative;
+  z-index: 1000;
+  overflow: hidden;
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  background: #892047;
+  color: #ffffff;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  min-width: max-content;
+  align-items: center;
+  white-space: nowrap;
+  animation: announcementScroll 28s linear infinite;
+  will-change: transform;
+}
+
+.bar:hover .track {
+  animation-play-state: paused;
+}
+
+.item {
+  display: inline-flex;
+  min-height: 42px;
+  padding: 8px 22px;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.icon {
+  color: #ebc0ca;
+  font-size: 13px;
+}
+
+.separator {
+  margin-left: 12px;
+  color: #ebc0ca;
+}
+
+@keyframes announcementScroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 600px) {
+  .bar {
+    min-height: 38px;
+  }
+
+  .item {
+    min-height: 38px;
+    padding: 7px 16px;
+    font-size: 12px;
+  }
+
+  .track {
+    animation-duration: 22s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+
+  .bar {
+    overflow-x: auto;
+  }
+}
