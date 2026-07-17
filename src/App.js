@@ -10,6 +10,7 @@ import Reviews from "./pages/Reviews/Reviews";
 import ReviewsPage from "./pages/Admin/ReviewsPage";
 import AboutUs from "./pages/AboutUs/AboutUs";
 import Bundles from "./pages/Bundles/Bundles";
+import BundleDetails from "./pages/BundleDetails/BundleDetails";
 
 export const ADMIN_BASE_PATH = "/uniqare-control-panel-9x7";
 export const ADMIN_LOGIN_PATH = `${ADMIN_BASE_PATH}/login`;
@@ -37,6 +38,8 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/checkout/:id" element={<Checkout />} />
         <Route path="/bundles" element={<Bundles />} />
+        <Route path="/bundles/:id"element={<BundleDetails />}
+/>
 
         {/* Admin login */}
         <Route

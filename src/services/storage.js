@@ -1418,3 +1418,11 @@ export function saveProducts() {
 export function saveOrders() {
   return null;
 }
+
+export async function getBundleById(id) {
+  const bundles = await getPublicBundles();
+
+  return bundles.find(
+      bundle => Number(bundle.id) === Number(id)
+  );
+}

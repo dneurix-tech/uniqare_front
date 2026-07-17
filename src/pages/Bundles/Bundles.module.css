@@ -189,10 +189,17 @@
 }
 
 .imageBox {
-  position: relative;
-  min-height: 430px;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 1/1;
+  background: #fff;
+  border-radius: 20px;
   overflow: hidden;
-  background: #f7e9ed;
+}
+.imageBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* بدل cover */
 }
 
 .bundleImage,
@@ -625,4 +632,24 @@
     width: 52px;
     height: 52px;
   }
+}
+.detailsButton{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+  border:1px solid #111;
+  font-weight:600;
+  text-decoration:none;
+  transition:.3s;
+}
+
+.detailsButton:hover{
+  background:#111;
+  color:#fff;
 }

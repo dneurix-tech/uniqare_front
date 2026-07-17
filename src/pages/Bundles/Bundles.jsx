@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
@@ -167,30 +167,37 @@ function BundleCard({ bundle, onAddToCart }) {
           </strong>
         </div>
 
-<p className={styles.stockText}>
+        <p className={styles.stockText}>
   {Number(bundle.stock || 0) > 0
     ? `Only ${bundle.stock} bundle(s) left`
     : "Sold out"}
 </p>
 
-        <button
-          type="button"
-          className={styles.addButton}
-          disabled={
-            Number(bundle.stock || 0) <= 0 ||
-            bundle.is_active === false
-          }
-          onClick={() => onAddToCart(bundle)}
-        >
-          {Number(bundle.stock || 0) > 0
-            ? "Add Bundle to Cart"
-            : "Sold Out"}
-        </button>
-      </div>
-    </article>
-  );
-}
+<button
+  type="button"
+  className={styles.addButton}
+  disabled={
+    Number(bundle.stock || 0) <= 0 ||
+    bundle.is_active === false
+  }
+  onClick={() => onAddToCart(bundle)}
+>
+  {Number(bundle.stock || 0) > 0
+    ? "Add Bundle to Cart"
+    : "Sold Out"}
+</button>
 
+<Link
+  to={`/bundles/${bundle.id}`}
+  className={styles.detailsButton}
+>
+  View Details
+</Link>
+
+</div>
+</article>
+);
+}
 
 export default function Bundles() {
   const navigate = useNavigate();

@@ -1333,19 +1333,57 @@ const getProductById = useCallback(
               />
             </div>
 
-            <textarea
-              name="description"
-              value={productForm.description}
-              onChange={handleProductChange}
-              placeholder="Short description"
-            />
+            <div className={styles.inputGroup}>
+  <label>Product Highlights</label>
 
-            <textarea
-              name="details"
-              value={productForm.details}
-              onChange={handleProductChange}
-              placeholder="Full product details"
-            />
+  <textarea
+    className={styles.descriptionInput}
+    name="description"
+    rows={4}
+    value={productForm.description}
+    onChange={handleProductChange}
+    placeholder={`Write a quick summary that appears on the product card.
+Example:
+• Supports healthy skin
+`}
+  />
+
+  <small className={styles.counter}>
+    {productForm.description.length} / 300
+  </small>
+</div>
+
+<div className={styles.inputGroup}>
+  <label>Complete Product Information</label>
+
+  <textarea
+    className={styles.longDescription}
+    name="details"
+    rows={12}
+    value={productForm.details}
+    onChange={handleProductChange}
+    placeholder={`Provide complete information about the product.
+
+Suggested structure:
+Overview
+
+Key Benefits
+• ...
+
+Ingredients
+
+Directions for Use
+
+Warnings
+
+Storage
+`}
+  />
+
+  <small className={styles.counter}>
+    {productForm.details.length} / 3000
+  </small>
+</div>
 
             <div className={styles.formActions}>
               <button className={styles.primaryButton} type="submit">
@@ -1508,18 +1546,62 @@ const getProductById = useCallback(
             </div>
 
             <textarea
-              name="short_description"
-              value={bundleForm.short_description}
-              onChange={handleBundleFieldChange}
-              placeholder="Short bundle description"
-            />
+    className={styles.descriptionInput}
+    rows={4}
+    placeholder={`Example:
+• Rich in Vitamin C
+• Supports immunity
+• Daily supplement`}
+    value={bundleForm.short_description}
+    onChange={(e) =>
+        setBundleForm({
+            ...bundleForm,
+            short_description: e.target.value,
+        })
+    }
+/>
 
-            <textarea
-              name="long_description"
-              value={bundleForm.long_description}
-              onChange={handleBundleFieldChange}
-              placeholder="Full bundle details"
-            />
+<div className={styles.counter}>
+    {bundleForm.short_description.length} / 300
+</div>
+
+<textarea
+    className={styles.longDescription}
+    rows={12}
+    placeholder={`Describe the bundle...
+
+Benefits
+
+• ...
+• ...
+
+Ingredients
+
+...
+
+How To Use
+
+...
+
+Warnings
+
+...
+
+Storage
+
+...`}
+    value={bundleForm.long_description}
+    onChange={(e) =>
+        setBundleForm({
+            ...bundleForm,
+            long_description: e.target.value,
+        })
+    }
+/>
+
+<div className={styles.counter}>
+    {bundleForm.long_description.length} / 3000
+</div>
 
             <div className={styles.orderEditor}>
               <div className={styles.orderEditorHeader}>
