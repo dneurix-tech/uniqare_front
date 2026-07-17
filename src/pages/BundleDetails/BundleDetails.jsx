@@ -194,50 +194,51 @@ export default function BundleDetails() {
               ))}
             </div>
 
-            <div className={styles.quantity}>
-              <button
-                onClick={() =>
-                  setQuantity(Math.max(1, quantity - 1))
-                }
-              >
-                -
-              </button>
+            <div className={styles.actionBox}>
+  <div className={styles.quantity}>
+    <button
+      onClick={() =>
+        setQuantity(Math.max(1, quantity - 1))
+      }
+    >
+      -
+    </button>
 
-              <span>{quantity}</span>
+    <span>{quantity}</span>
 
-              <button
-                onClick={() =>
-                  setQuantity(
-                    Math.min(bundle.stock, quantity + 1)
-                  )
-                }
-              >
-                +
-              </button>
-            </div>
+    <button
+      onClick={() =>
+        setQuantity(
+          Math.min(bundle.stock, quantity + 1)
+        )
+      }
+    >
+      +
+    </button>
+  </div>
 
-            <button
-              className={styles.buyButton}
-              onClick={addBundle}
-            >
-              Add Bundle To Cart
-            </button>
+  <button
+    className={styles.buyButton}
+    onClick={addBundle}
+  >
+    Add Bundle To Cart
+  </button>
 
-            <button
-              className={styles.checkoutButton}
-              onClick={() => {
-                addBundle();
-                navigate("/checkout");
-              }}
-            >
-              Buy Now
-            </button>
+  <button
+    className={styles.checkoutButton}
+    onClick={() => {
+      addBundle();
+      navigate("/checkout");
+    }}
+  >
+    Buy Now
+    </button>
+      </div>
+    </div>
+  </section>
+</main>
 
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </>
-  );
+<Footer />
+</>
+);
 }
