@@ -142,42 +142,40 @@ export default function AdminDashboard() {
     loadBundles();
     loadAnnouncements();
   }, []);
-  
-// أضف هذه الدالة للتأكد من أن البيانات صحيحة عند التحميل
-useEffect(() => {
-  // إذا كان هناك منتج قيد التعديل، تأكد من تحديث الحقول
-  if (editingId) {
-    const product = products.find(p => p.id === editingId);
-    if (product) {
-      setProductForm(prev => ({
-        ...prev,
-        description: product.short_description || product.description || "",
-        details: product.long_description || product.details || product.description || "",
-      }));
+
+  // التأكد من أن البيانات صحيحة عند التحميل
+  useEffect(() => {
+    if (editingId) {
+      const product = products.find(p => p.id === editingId);
+      if (product) {
+        setProductForm(prev => ({
+          ...prev,
+          description: product.short_description || product.description || "",
+          details: product.long_description || product.details || product.description || "",
+        }));
+      }
+    }
+  }, [editingId, products]);
+
+  async function loadProducts() {
+    try {
+      setLoadingProducts(true);
+      const data = await getAdminProducts();
+      
+      const normalizedData = Array.isArray(data) ? data.map(product => ({
+        ...product,
+        short_description: product.short_description || product.description || "",
+        long_description: product.long_description || product.details || product.description || "",
+      })) : [];
+      
+      setProducts(normalizedData);
+    } catch (err) {
+      console.error(err);
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
     }
   }
-}, [editingId, products]);
-
-async function loadProducts() {
-  try {
-    setLoadingProducts(true);
-    const data = await getAdminProducts();
-    
-    // تأكد من أن كل منتج يحتوي على الحقول المطلوبة
-    const normalizedData = Array.isArray(data) ? data.map(product => ({
-      ...product,
-      short_description: product.short_description || product.description || "",
-      long_description: product.long_description || product.details || product.description || "",
-    })) : [];
-    
-    setProducts(normalizedData);
-  } catch (err) {
-    console.error(err);
-    setProducts([]);
-  } finally {
-    setLoadingProducts(false);
-  }
-}
 
   async function loadOrders() {
     try {
@@ -231,10 +229,10 @@ async function loadProducts() {
     }
   }
 
-function logout() {
-  localStorage.removeItem("uniqare_admin_logged_in");
-  navigate("/uniqare-control-panel-9x7/login");
-}
+  function logout() {
+    localStorage.removeItem("uniqare_admin_logged_in");
+    navigate("/uniqare-control-panel-9x7/login");
+  }
 
   /* =========================
      Products
@@ -259,46 +257,49 @@ function logout() {
 
   async function handleProductSubmit(event) {
     event.preventDefault();
-  
+
     const currentPrice = Number(productForm.price);
     const oldPrice = productForm.old_price === "" ? null : Number(productForm.old_price);
-  
+
     if (!productForm.name || !productForm.price || !productForm.description || productForm.stock === "") {
       alert("Please fill required product fields");
       return;
     }
-  
+
     if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
       alert("Current price must be greater than 0");
       return;
     }
-  
+
     if (oldPrice !== null && (!Number.isFinite(oldPrice) || oldPrice <= currentPrice)) {
       alert("Old price must be greater than current price");
       return;
     }
-  
+
     if (!editingId && !productForm.image) {
       alert("Please upload product image");
       return;
     }
-  
+
     try {
       const productData = {
-        ...productForm,
-        // تأكد من إرسال الحقول الصحيحة
+        name: productForm.name,
+        old_price: productForm.old_price === "" ? null : Number(productForm.old_price),
+        price: Number(productForm.price),
+        stock: Number(productForm.stock),
         short_description: productForm.description,
         long_description: productForm.details,
+        image: productForm.image,
       };
-  
+
       if (editingId) {
         await updateProduct(editingId, productData);
       } else {
         await addProduct(productData);
       }
-  
+
       await loadProducts();
-  
+
       setEditingId(null);
       setProductForm(emptyProductForm);
       setImageInputKey(Date.now());
@@ -310,7 +311,7 @@ function logout() {
 
   function startEdit(product) {
     setEditingId(product.id);
-  
+
     setProductForm({
       name: product.name || "",
       old_price: product.old_price ?? product.oldPrice ?? "",
@@ -320,7 +321,7 @@ function logout() {
       details: product.long_description || product.details || product.description || "",
       stock: product.stock ?? "",
     });
-  
+
     setImageInputKey(Date.now());
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -413,14 +414,14 @@ function logout() {
     return Number(order.total_price || order.finalPrice || order.total || 0);
   }
 
-const getProductById = useCallback(
-  (productId) => {
-    return products.find(
-      (product) => Number(product.id) === Number(productId)
-    );
-  },
-  [products]
-);
+  const getProductById = useCallback(
+    (productId) => {
+      return products.find(
+        (product) => Number(product.id) === Number(productId)
+      );
+    },
+    [products]
+  );
 
   function startEditOrder(order) {
     const items = getOrderItems(order).map((item) => ({
@@ -595,13 +596,13 @@ const getProductById = useCallback(
       discount: Number(discount.toFixed(2)),
       total: Number((subtotal - discount).toFixed(2)),
     };
-}, [
-  orderForm.items,
-  orderForm.coupon_code,
-  orderForm.coupon_discount_type,
-  orderForm.coupon_discount_value,
-  getProductById,
-]);
+  }, [
+    orderForm.items,
+    orderForm.coupon_code,
+    orderForm.coupon_discount_type,
+    orderForm.coupon_discount_value,
+    getProductById,
+  ]);
 
   async function handleOrderUpdate(event) {
     event.preventDefault();
@@ -925,9 +926,7 @@ const getProductById = useCallback(
       long_description: bundle.long_description || "",
       price: bundle.price ?? "",
       old_price: bundle.old_price ?? "",
-      stock:
-      bundle.configured_stock ??
-      bundle.stock ??"",
+      stock: bundle.configured_stock ?? bundle.stock ?? "",
       category: bundle.category || "Bundle Offers",
       is_active: Boolean(bundle.is_active),
       images: [],
@@ -965,17 +964,11 @@ const getProductById = useCallback(
         ? null
         : Number(bundleForm.old_price);
 
-    const bundleStock = Number(
-      bundleForm.stock);
-      if (
-  !Number.isInteger(bundleStock) ||
-  bundleStock <= 0
-) {
-  alert(
-    "Available bundle quantity must be a positive whole number"
-  );
-  return;
-}
+    const bundleStock = Number(bundleForm.stock);
+    if (!Number.isInteger(bundleStock) || bundleStock <= 0) {
+      alert("Available bundle quantity must be a positive whole number");
+      return;
+    }
 
     const normalizedItems = bundleForm.items
       .filter((item) => item.product_id !== "")
@@ -1035,16 +1028,12 @@ const getProductById = useCallback(
 
       const payload = {
         name,
-        short_description:
-          bundleForm.short_description.trim(),
-        long_description:
-          bundleForm.long_description.trim(),
+        short_description: bundleForm.short_description.trim(),
+        long_description: bundleForm.long_description.trim(),
         price: currentPrice,
-        old_price:
-          oldPrice === null ? "" : oldPrice,
-          stock: bundleStock,
-        category:
-          bundleForm.category.trim() || "Bundle Offers",
+        old_price: oldPrice === null ? "" : oldPrice,
+        stock: bundleStock,
+        category: bundleForm.category.trim() || "Bundle Offers",
         is_active: bundleForm.is_active,
         items: normalizedItems,
         images: bundleForm.images,
@@ -1346,35 +1335,35 @@ const getProductById = useCallback(
             </div>
 
             <div className={styles.inputGroup}>
-  <label>Product Highlights</label>
+              <label>Product Highlights</label>
 
-  <textarea
-    className={styles.descriptionInput}
-    name="description"
-    rows={4}
-    value={productForm.description}
-    onChange={handleProductChange}
-    placeholder={`Write a quick summary that appears on the product card.
+              <textarea
+                className={styles.descriptionInput}
+                name="description"
+                rows={4}
+                value={productForm.description}
+                onChange={handleProductChange}
+                placeholder={`Write a quick summary that appears on the product card.
 Example:
 • Supports healthy skin
 `}
-  />
+              />
 
-  <small className={styles.counter}>
-    {productForm.description.length} / 300
-  </small>
-</div>
+              <small className={styles.counter}>
+                {productForm.description.length} / 300
+              </small>
+            </div>
 
-<div className={styles.inputGroup}>
-  <label>Complete Product Information</label>
+            <div className={styles.inputGroup}>
+              <label>Complete Product Information</label>
 
-  <textarea
-    className={styles.longDescription}
-    name="details"
-    rows={12}
-    value={productForm.details}
-    onChange={handleProductChange}
-    placeholder={`Provide complete information about the product.
+              <textarea
+                className={styles.longDescription}
+                name="details"
+                rows={12}
+                value={productForm.details}
+                onChange={handleProductChange}
+                placeholder={`Provide complete information about the product.
 
 Suggested structure:
 Overview
@@ -1390,12 +1379,12 @@ Warnings
 
 Storage
 `}
-  />
+              />
 
-  <small className={styles.counter}>
-    {productForm.details.length} / 3000
-  </small>
-</div>
+              <small className={styles.counter}>
+                {productForm.details.length} / 3000
+              </small>
+            </div>
 
             <div className={styles.formActions}>
               <button className={styles.primaryButton} type="submit">
@@ -1425,6 +1414,11 @@ Storage
                   Number(product.stock || 0) <= 0 ||
                   product.is_active === false;
 
+                const shortDescription = 
+                  product.short_description || 
+                  product.description || 
+                  "";
+
                 return (
                   <article className={styles.adminProductCard} key={product.id}>
                     <img
@@ -1432,7 +1426,7 @@ Storage
                       alt={product.name}
                     />
 
-                    <div>
+                    <div className={styles.productInfo}>
                       <h3>{product.name}</h3>
 
                       <div className={styles.adminPriceBox}>
@@ -1448,7 +1442,15 @@ Storage
                         </strong>
                       </div>
 
-                      <p>Stock: {product.stock}</p>
+                      {shortDescription && (
+                        <p className={styles.productShortDesc}>
+                          {shortDescription}
+                        </p>
+                      )}
+
+                      <p className={styles.productStock}>
+                        Stock: <strong>{product.stock}</strong>
+                      </p>
 
                       <span
                         className={`${styles.statusBadge} ${
@@ -1460,8 +1462,12 @@ Storage
                     </div>
 
                     <div className={styles.cardActions}>
-                      <button type="button" onClick={() => startEdit(product)}>
-                        Edit
+                      <button 
+                        type="button" 
+                        onClick={() => startEdit(product)}
+                        className={styles.editButton}
+                      >
+                        ✏️ Edit
                       </button>
 
                       <button
@@ -1469,7 +1475,7 @@ Storage
                         className={styles.deleteButton}
                         onClick={() => handleDelete(product.id)}
                       >
-                        Delete
+                        🗑️ Delete
                       </button>
                     </div>
                   </article>
@@ -1520,15 +1526,15 @@ Storage
                 placeholder="Bundle price"
               />
 
-                <input
-    name="stock"
-    type="number"
-    min="1"
-    step="1"
-    value={bundleForm.stock}
-    onChange={handleBundleFieldChange}
-    placeholder="Available bundle quantity"
-  />
+              <input
+                name="stock"
+                type="number"
+                min="1"
+                step="1"
+                value={bundleForm.stock}
+                onChange={handleBundleFieldChange}
+                placeholder="Available bundle quantity"
+              />
 
               <input
                 name="category"
@@ -1558,29 +1564,29 @@ Storage
             </div>
 
             <textarea
-    className={styles.descriptionInput}
-    rows={4}
-    placeholder={`Example:
+              className={styles.descriptionInput}
+              rows={4}
+              placeholder={`Example:
 • Rich in Vitamin C
 • Supports immunity
 • Daily supplement`}
-    value={bundleForm.short_description}
-    onChange={(e) =>
-        setBundleForm({
-            ...bundleForm,
-            short_description: e.target.value,
-        })
-    }
-/>
+              value={bundleForm.short_description}
+              onChange={(e) =>
+                setBundleForm({
+                  ...bundleForm,
+                  short_description: e.target.value,
+                })
+              }
+            />
 
-<div className={styles.counter}>
-    {bundleForm.short_description.length} / 300
-</div>
+            <div className={styles.counter}>
+              {bundleForm.short_description.length} / 300
+            </div>
 
-<textarea
-    className={styles.longDescription}
-    rows={12}
-    placeholder={`Describe the bundle...
+            <textarea
+              className={styles.longDescription}
+              rows={12}
+              placeholder={`Describe the bundle...
 
 Benefits
 
@@ -1602,18 +1608,18 @@ Warnings
 Storage
 
 ...`}
-    value={bundleForm.long_description}
-    onChange={(e) =>
-        setBundleForm({
-            ...bundleForm,
-            long_description: e.target.value,
-        })
-    }
-/>
+              value={bundleForm.long_description}
+              onChange={(e) =>
+                setBundleForm({
+                  ...bundleForm,
+                  long_description: e.target.value,
+                })
+              }
+            />
 
-<div className={styles.counter}>
-    {bundleForm.long_description.length} / 3000
-</div>
+            <div className={styles.counter}>
+              {bundleForm.long_description.length} / 3000
+            </div>
 
             <div className={styles.orderEditor}>
               <div className={styles.orderEditorHeader}>

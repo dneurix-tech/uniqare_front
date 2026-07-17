@@ -162,30 +162,67 @@
 
 .adminProductCard {
   display: grid;
-  grid-template-columns: 90px 1fr auto;
+  grid-template-columns: 100px 1fr auto;
   gap: 16px;
-  align-items: center;
+  align-items: start;
   border: 1px solid var(--uniqare-border);
   border-radius: 20px;
-  padding: 14px;
+  padding: 16px;
+  background: #fff;
+  transition: 0.2s ease;
+}
+
+.adminProductCard:hover {
+  box-shadow: var(--shadow-soft);
+  border-color: var(--uniqare-primary);
 }
 
 .adminProductCard img {
-  width: 90px;
-  height: 90px;
+  width: 100px;
+  height: 100px;
   object-fit: cover;
   border-radius: 15px;
   background: var(--uniqare-soft);
 }
 
 .adminProductCard h3 {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--uniqare-primary);
+  font-size: 16px;
 }
 
 .adminProductCard p {
-  margin: 4px 0;
+  margin: 2px 0;
   color: var(--uniqare-muted);
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.productShortDesc {
+  font-size: 13px;
+  color: var(--uniqare-muted);
+  margin: 4px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+  max-width: 100%;
+}
+
+.productStock {
+  margin: 2px 0;
+  color: var(--uniqare-muted);
+  font-size: 14px;
+}
+
+.productStock strong {
+  color: var(--uniqare-primary);
 }
 
 .statusBadge {
@@ -208,22 +245,41 @@
 
 .cardActions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
+  align-items: stretch;
 }
 
 .cardActions button {
   border: none;
   border-radius: 12px;
-  padding: 10px 14px;
-  background: var(--uniqare-primary);
-  color: #fff;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
-  font-weight: 800;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.editButton {
+  background: var(--uniqare-primary) !important;
+  color: #fff !important;
+  transition: 0.2s ease;
+}
+
+.editButton:hover {
+  background: var(--uniqare-primary-light) !important;
+  transform: translateY(-2px);
 }
 
 .deleteButton {
-  background: var(--danger-text) !important;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.deleteButton:hover {
+  background: #dc2626 !important;
+  color: #fff !important;
 }
 
 .emptyText {
@@ -532,96 +588,12 @@
 }
 
 /* =========================
-   Responsive
+   Admin Price Box
 ========================= */
-
-@media (max-width: 1000px) {
-  .formGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .orderDetailsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .editOrderItem {
-    grid-template-columns: 64px 1fr auto;
-  }
-
-  .quantityEditor,
-  .editOrderItem > strong,
-  .removeItemButton {
-    grid-column: span 1;
-  }
-
-  .couponDetails {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 700px) {
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .section {
-    padding: 16px;
-  }
-
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .adminProductCard {
-    grid-template-columns: 80px 1fr;
-  }
-
-  .cardActions {
-    grid-column: 1 / -1;
-  }
-
-  .orderMain {
-    grid-template-columns: 1fr;
-  }
-
-  .orderItemRow {
-    grid-template-columns: 1fr;
-  }
-
-  .orderEditorHeader,
-  .couponTop {
-    flex-direction: column;
-  }
-
-  .editOrderItem {
-    grid-template-columns: 1fr;
-  }
-
-  .editOrderItem img {
-    width: 84px;
-    height: 84px;
-  }
-
-  .addOrderProduct {
-    grid-template-columns: 1fr;
-  }
-
-  .quantityEditor,
-  .editOrderItem > strong,
-  .removeItemButton {
-    grid-column: auto;
-  }
-
-  .orderPreview {
-    justify-content: flex-start;
-    flex-direction: column;
-  }
-}
 
 .adminPriceBox {
   display: flex;
-  margin: 8px 0;
+  margin: 4px 0;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
@@ -629,7 +601,7 @@
 
 .adminOldPrice {
   color: #97868c;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-decoration: line-through;
   text-decoration-color: #892047;
@@ -638,46 +610,13 @@
 
 .adminCurrentPrice {
   color: #892047;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 900;
 }
 
-.descriptionInput,
-.longDescription {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1px solid #ddd;
-    border-radius: 14px;
-    font-size: 15px;
-    font-family: inherit;
-    line-height: 1.7;
-    resize: vertical;
-    outline: none;
-    transition: .2s;
-    box-sizing: border-box;
-}
-
-.descriptionInput {
-    min-height: 100px;
-}
-
-.longDescription {
-    min-height: 280px;
-}
-
-.descriptionInput:focus,
-.longDescription:focus {
-    border-color: var(--uniqare-primary);
-    box-shadow: 0 0 0 3px rgba(137,32,71,.1);
-}
-
-.counter {
-    text-align: right;
-    margin-top: 6px;
-    margin-bottom: 18px;
-    font-size: 13px;
-    color: #888;
-}
+/* =========================
+   Input Groups
+========================= */
 
 .inputGroup {
   margin-bottom: 22px;
@@ -728,14 +667,114 @@
   color: #888;
 }
 
-/* أضف هذا إلى AdminDashboard.module.css */
-.productShortDesc {
-  font-size: 13px;
-  color: var(--uniqare-muted);
-  margin: 6px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.5;
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 1000px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .orderDetailsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .editOrderItem {
+    grid-template-columns: 64px 1fr auto;
+  }
+
+  .quantityEditor,
+  .editOrderItem > strong,
+  .removeItemButton {
+    grid-column: span 1;
+  }
+
+  .couponDetails {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section {
+    padding: 16px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminProductCard {
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .adminProductCard img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .cardActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  .cardActions button {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  .productShortDesc {
+    font-size: 12px;
+    -webkit-line-clamp: 1;
+  }
+
+  .adminCurrentPrice {
+    font-size: 16px;
+  }
+
+  .orderMain {
+    grid-template-columns: 1fr;
+  }
+
+  .orderItemRow {
+    grid-template-columns: 1fr;
+  }
+
+  .orderEditorHeader,
+  .couponTop {
+    flex-direction: column;
+  }
+
+  .editOrderItem {
+    grid-template-columns: 1fr;
+  }
+
+  .editOrderItem img {
+    width: 84px;
+    height: 84px;
+  }
+
+  .addOrderProduct {
+    grid-template-columns: 1fr;
+  }
+
+  .quantityEditor,
+  .editOrderItem > strong,
+  .removeItemButton {
+    grid-column: auto;
+  }
+
+  .orderPreview {
+    justify-content: flex-start;
+    flex-direction: column;
+  }
 }

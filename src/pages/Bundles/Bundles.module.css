@@ -10,10 +10,7 @@
 .floatingActions {
   position: fixed;
   right: 22px;
-
-  /* Leave room for the WhatsApp floating button. */
   bottom: 92px;
-
   z-index: 1200;
   display: flex;
   flex-direction: column;
@@ -21,7 +18,6 @@
   gap: 10px;
 }
 
-/* Cart stays above the Products button. */
 .cartFloatingButton {
   order: 1;
 }
@@ -189,6 +185,7 @@
 }
 
 .imageBox {
+  position: relative;
   width: 100%;
   max-width: 500px;
   aspect-ratio: 1/1;
@@ -196,10 +193,11 @@
   border-radius: 20px;
   overflow: hidden;
 }
+
 .imageBox img {
   width: 100%;
   height: 100%;
-  object-fit: contain;   /* بدل cover */
+  object-fit: contain;
 }
 
 .bundleImage,
@@ -390,6 +388,27 @@
   opacity: 0.55;
 }
 
+.detailsButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  border: 1px solid #111;
+  font-weight: 600;
+  text-decoration: none;
+  transition: .3s;
+}
+
+.detailsButton:hover {
+  background: #111;
+  color: #fff;
+}
+
 .statusText,
 .errorText,
 .emptyState {
@@ -413,9 +432,10 @@
   color: #ffffff;
 }
 
+/* تعديل cart message - يظهر تحت الهيدر */
 .cartMessage {
   position: fixed;
-  top: 24px;
+  top: 80px;
   left: 50%;
   z-index: 2000;
   width: min(430px, calc(100% - 32px));
@@ -618,8 +638,6 @@
 
   .floatingActions {
     right: 14px;
-
-    /* Keep both buttons above the mobile WhatsApp button. */
     bottom: 82px;
   }
 
@@ -632,24 +650,10 @@
     width: 52px;
     height: 52px;
   }
-}
-.detailsButton{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:100%;
-  margin-top:12px;
-  padding:12px;
-  border-radius:10px;
-  background:#fff;
-  color:#111;
-  border:1px solid #111;
-  font-weight:600;
-  text-decoration:none;
-  transition:.3s;
-}
 
-.detailsButton:hover{
-  background:#111;
-  color:#fff;
+  /* تعديل position للشاشات الصغيرة */
+  .cartMessage {
+    top: 70px;
+    width: calc(100% - 24px);
+  }
 }
