@@ -142,19 +142,42 @@ export default function AdminDashboard() {
     loadBundles();
     loadAnnouncements();
   }, []);
-
-  async function loadProducts() {
-    try {
-      setLoadingProducts(true);
-      const data = await getAdminProducts();
-      setProducts(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setProducts([]);
-    } finally {
-      setLoadingProducts(false);
+  
+// أضف هذه الدالة للتأكد من أن البيانات صحيحة عند التحميل
+useEffect(() => {
+  // إذا كان هناك منتج قيد التعديل، تأكد من تحديث الحقول
+  if (editingId) {
+    const product = products.find(p => p.id === editingId);
+    if (product) {
+      setProductForm(prev => ({
+        ...prev,
+        description: product.short_description || product.description || "",
+        details: product.long_description || product.details || product.description || "",
+      }));
     }
   }
+}, [editingId, products]);
+
+async function loadProducts() {
+  try {
+    setLoadingProducts(true);
+    const data = await getAdminProducts();
+    
+    // تأكد من أن كل منتج يحتوي على الحقول المطلوبة
+    const normalizedData = Array.isArray(data) ? data.map(product => ({
+      ...product,
+      short_description: product.short_description || product.description || "",
+      long_description: product.long_description || product.details || product.description || "",
+    })) : [];
+    
+    setProducts(normalizedData);
+  } catch (err) {
+    console.error(err);
+    setProducts([]);
+  } finally {
+    setLoadingProducts(false);
+  }
+}
 
   async function loadOrders() {
     try {
@@ -236,50 +259,46 @@ function logout() {
 
   async function handleProductSubmit(event) {
     event.preventDefault();
-
+  
     const currentPrice = Number(productForm.price);
-    const oldPrice =
-      productForm.old_price === ""
-        ? null
-        : Number(productForm.old_price);
-
-    if (
-      !productForm.name ||
-      !productForm.price ||
-      !productForm.description ||
-      productForm.stock === ""
-    ) {
+    const oldPrice = productForm.old_price === "" ? null : Number(productForm.old_price);
+  
+    if (!productForm.name || !productForm.price || !productForm.description || productForm.stock === "") {
       alert("Please fill required product fields");
       return;
     }
-
+  
     if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
       alert("Current price must be greater than 0");
       return;
     }
-
-    if (
-      oldPrice !== null &&
-      (!Number.isFinite(oldPrice) || oldPrice <= currentPrice)
-    ) {
+  
+    if (oldPrice !== null && (!Number.isFinite(oldPrice) || oldPrice <= currentPrice)) {
       alert("Old price must be greater than current price");
       return;
     }
-
+  
     if (!editingId && !productForm.image) {
       alert("Please upload product image");
       return;
     }
-
+  
     try {
+      const productData = {
+        ...productForm,
+        // تأكد من إرسال الحقول الصحيحة
+        short_description: productForm.description,
+        long_description: productForm.details,
+      };
+  
       if (editingId) {
-        await updateProduct(editingId, productForm);
+        await updateProduct(editingId, productData);
       } else {
-        await addProduct(productForm);
+        await addProduct(productData);
       }
-
+  
       await loadProducts();
-
+  
       setEditingId(null);
       setProductForm(emptyProductForm);
       setImageInputKey(Date.now());
@@ -291,24 +310,17 @@ function logout() {
 
   function startEdit(product) {
     setEditingId(product.id);
-
+  
     setProductForm({
       name: product.name || "",
       old_price: product.old_price ?? product.oldPrice ?? "",
       price: product.price || "",
       image: null,
-      description:
-        product.short_description ||
-        product.description ||
-        "",
-      details:
-        product.long_description ||
-        product.details ||
-        product.description ||
-        "",
+      description: product.short_description || product.description || "",
+      details: product.long_description || product.details || product.description || "",
       stock: product.stock ?? "",
     });
-
+  
     setImageInputKey(Date.now());
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
