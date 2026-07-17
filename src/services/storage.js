@@ -1419,10 +1419,23 @@ export function saveOrders() {
   return null;
 }
 
-export async function getBundleById(id) {
-  const bundles = await getPublicBundles();
+// In services/storage.js
 
-  return bundles.find(
-      bundle => Number(bundle.id) === Number(id)
-  );
+export async function getBundleById(id) {
+  try {
+    const response = await fetch(`${API_URL}/bundles/${id}`);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error("Bundle not found");
+      }
+      throw new Error("Failed to fetch bundle");
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching bundle:", error);
+    throw error;
+  }
 }
