@@ -3,36 +3,50 @@
   margin: 0 auto;
 }
 
+/* =========================
+   Hero
+========================= */
+
 .hero {
-  text-align: center;
   padding: 18px 0 28px;
+  text-align: center;
 }
 
 .label {
   display: inline-flex;
+  margin-bottom: 12px;
   padding: 7px 13px;
+
   border-radius: var(--radius-pill);
   background: var(--uniqare-soft);
   color: var(--uniqare-primary);
-  font-weight: 800;
+
   font-size: 12px;
-  margin-bottom: 12px;
+  font-weight: 800;
 }
 
 .title {
   margin: 0 0 10px;
+
   color: var(--uniqare-primary);
+
   font-size: clamp(28px, 4vw, 42px);
   line-height: 1.05;
 }
 
 .subtitle {
-  margin: 0 auto;
   max-width: 500px;
+  margin: 0 auto;
+
   color: var(--uniqare-muted);
+
   font-size: 15px;
   line-height: 1.6;
 }
+
+/* =========================
+   Products
+========================= */
 
 .productsSection {
   padding-top: 8px;
@@ -40,21 +54,26 @@
 
 .productsHeader {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
+  justify-content: space-between;
   gap: 16px;
+
   margin-bottom: 18px;
 }
 
 .productsHeader h3 {
   margin: 0;
-  font-size: 22px;
+
   color: var(--uniqare-primary);
+
+  font-size: 22px;
 }
 
 .productsHeader p {
   margin: 0;
+
   color: var(--uniqare-muted);
+
   font-size: 14px;
 }
 
@@ -64,65 +83,147 @@
   gap: 18px;
 }
 
+/* =========================
+   Products And Bundles Buttons
+========================= */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bundlesHeaderButton,
+.cartHeaderButton {
+  min-height: 44px;
+  padding: 0 18px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border-radius: 999px;
+
+  font-family: inherit;
+  font-weight: 800;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.headerActionIcon {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+
+  display: block;
+
+  color: currentColor;
+}
+
+.bundlesHeaderButton {
+  border: 1px solid #892047;
+
+  background: #fff7f9;
+  color: #892047;
+}
+
+.bundlesHeaderButton:hover {
+  background: #892047;
+  color: #ffffff;
+
+  transform: translateY(-2px);
+}
+
+.cartHeaderButton {
+  border: 1px solid #892047;
+
+  background: #892047;
+  color: #ffffff;
+}
+
+.cartHeaderButton:hover {
+  background: #6f1839;
+
+  box-shadow: 0 8px 18px rgba(137, 32, 71, 0.22);
+
+  transform: translateY(-2px);
+}
+
+/* =========================
+   Pagination
+========================= */
+
 .pagination {
   display: flex;
   justify-content: center;
   gap: 8px;
+
   margin: 32px 0 8px;
 }
 
 .pagination button {
   width: 36px;
   height: 36px;
+
   border: 1px solid var(--uniqare-primary);
-  background: #fff;
-  color: var(--uniqare-primary);
   border-radius: 50%;
-  cursor: pointer;
+
+  background: #ffffff;
+  color: var(--uniqare-primary);
+
   font-weight: 800;
-  transition: 0.2s ease;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagination button:hover {
+  transform: translateY(-1px);
 }
 
 .pagination button:hover,
 .activePage {
   background: var(--uniqare-primary) !important;
-  color: #fff !important;
+  color: #ffffff !important;
 }
 
-@media (max-width: 700px) {
-  .page {
-    width: min(520px, 94%);
-  }
-
-  .hero {
-    padding-top: 12px;
-  }
-
-  .productsHeader {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .productsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-}
+/* =========================
+   Old Floating Cart Button
+   لن يظهر إلا لو كان موجودًا في Home.jsx
+========================= */
 
 .cartFloatingButton {
   position: fixed;
-  right: 22px;
   top: 170px;
+  right: 22px;
   z-index: 50;
+
   width: 58px;
   height: 58px;
+
   border: none;
   border-radius: 50%;
+
   background: #892047;
   color: #ffffff;
+
   font-size: 24px;
+
   cursor: pointer;
+
   box-shadow: 0 10px 28px rgba(137, 32, 71, 0.25);
 }
 
@@ -130,28 +231,27 @@
   position: absolute;
   top: -6px;
   right: -6px;
+
   min-width: 24px;
   height: 24px;
   padding: 0 6px;
-  border-radius: 999px;
-  background: #ebc0ca;
-  color: #892047;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  border-radius: 999px;
+
+  background: #ebc0ca;
+  color: #892047;
+
   font-size: 12px;
   font-weight: 800;
 }
 
-.cartHeaderButton {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 18px;
-  background: #892047;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
+/* =========================
+   Cart Overlay
+========================= */
 
 .cartOverlay {
   position: fixed;
@@ -162,157 +262,322 @@
 .cartBackdrop {
   position: absolute;
   inset: 0;
+
   background: rgba(0, 0, 0, 0.35);
 }
 
+/* =========================
+   Cart Drawer
+========================= */
+
 .cartDrawer {
-  position: absolute;
+  position: fixed;
+
+  /*
+    شريط الإعلان ارتفاعه 42px.
+    أضفنا 8px مسافة إضافية.
+  */
+  top: 50px;
   right: 0;
-  top: 0;
+
   width: min(420px, 100%);
-  height: 100%;
+
+  height: calc(100vh - 50px);
+  height: calc(100dvh - 50px);
+
+  display: flex;
+  flex-direction: column;
+
   background: #ffffff;
-  padding: 22px;
-  overflow-y: auto;
-  box-shadow: -12px 0 30px rgba(0, 0, 0, 0.12);
+
+  box-shadow: -10px 0 35px rgba(70, 24, 43, 0.2);
+
+  overflow: hidden;
 }
 
+/* =========================
+   Cart Header
+========================= */
+
 .cartHeader {
+  position: relative;
+  z-index: 5;
+
+  min-height: 72px;
+  padding: 18px 22px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 15px;
+  flex-shrink: 0;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid rgba(137, 32, 71, 0.12);
 }
 
 .cartHeader h3 {
   margin: 0;
+
   color: #892047;
+
+  font-size: 22px;
+  font-weight: 900;
 }
 
 .cartHeader button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
   border: none;
-  background: transparent;
-  font-size: 20px;
+  border-radius: 50%;
+
+  background: #f9e9ee;
+  color: #892047;
+
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1;
+
   cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
+
+.cartHeader button:hover {
+  background: #f2d3dd;
+
+  transform: scale(1.05);
+}
+
+/* =========================
+   Empty Cart
+========================= */
 
 .emptyCart {
+  flex: 1;
+
+  margin: 0;
+  padding: 50px 20px;
+
+  display: grid;
+  place-items: center;
+
   color: #845f69;
+
   text-align: center;
-  margin-top: 60px;
 }
 
+/* =========================
+   Cart Items
+========================= */
+
 .cartItems {
+  flex: 1;
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  padding: 18px;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cartItem {
   display: flex;
   gap: 14px;
+
   padding: 12px;
+
   border: 1px solid #f1d7de;
   border-radius: 18px;
+
   background: #fff8fa;
 }
 
 .cartItem img {
   width: 86px;
   height: 86px;
+  flex-shrink: 0;
+
   border-radius: 14px;
+
   object-fit: cover;
 }
 
 .cartItemInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .cartItemInfo h4 {
   margin: 0 0 6px;
+
   color: #892047;
+
+  overflow-wrap: anywhere;
 }
 
 .cartItemInfo p {
   margin: 0 0 10px;
+
   color: #845f69;
+
   font-weight: 700;
 }
+
+/* =========================
+   Quantity
+========================= */
 
 .quantityControls {
   display: flex;
   align-items: center;
   gap: 10px;
+
   margin-bottom: 10px;
 }
 
 .quantityControls button {
   width: 28px;
   height: 28px;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border: none;
   border-radius: 50%;
+
   background: #ebc0ca;
   color: #892047;
+
   font-weight: 900;
+
   cursor: pointer;
 }
 
 .quantityControls span {
   min-width: 20px;
+
   text-align: center;
   font-weight: 800;
 }
 
 .removeButton {
+  padding: 0;
+
   border: none;
+
   background: transparent;
   color: #892047;
+
+  font-family: inherit;
   font-weight: 700;
+
   cursor: pointer;
-  padding: 0;
 }
 
+.removeButton:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   Cart Footer
+========================= */
+
 .cartFooter {
-  position: sticky;
-  bottom: -22px;
+  position: relative;
+  z-index: 4;
+
+  flex-shrink: 0;
+
+  margin-top: auto;
+  padding: 18px 18px 20px;
+
   background: #ffffff;
-  padding-top: 18px;
-  margin-top: 24px;
+
   border-top: 1px solid #f1d7de;
+
+  box-shadow: 0 -8px 20px rgba(90, 40, 58, 0.06);
 }
 
 .cartTotal {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 15px;
+
   margin-bottom: 14px;
+
   color: #892047;
+
   font-size: 18px;
 }
 
 .checkoutButton {
   width: 100%;
+  padding: 14px 18px;
+
   border: none;
   border-radius: 999px;
-  padding: 14px 18px;
+
   background: #892047;
   color: #ffffff;
+
+  font-family: inherit;
   font-weight: 800;
+
   cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
+
+.checkoutButton:hover {
+  background: #6f1839;
+
+  transform: translateY(-1px);
+}
+
+/* =========================
+   Cart Messages
+========================= */
 
 .cartMessage {
   position: fixed;
   top: 110px;
   right: 24px;
   z-index: 3000;
-  display: flex;
+
   width: min(410px, calc(100% - 32px));
   padding: 16px 18px;
+
+  display: flex;
   align-items: center;
   gap: 13px;
+
   border-radius: 16px;
+
   background: #ffffff;
+
   box-shadow: 0 18px 50px rgba(70, 35, 47, 0.2);
+
   animation: showCartMessage 0.3s ease;
 }
 
@@ -324,21 +589,33 @@
   border: 1px solid rgba(190, 50, 50, 0.25);
 }
 
+.cartRemovedMessage {
+  border: 1px solid rgba(132, 95, 105, 0.25);
+}
+
 .cartMessageIcon {
-  flex-shrink: 0;
-  display: grid;
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
+
+  display: grid;
   place-items: center;
+
   border-radius: 50%;
+
   background: #892047;
   color: #ffffff;
+
   font-size: 20px;
   font-weight: 800;
 }
 
 .cartErrorMessage .cartMessageIcon {
   background: #b93636;
+}
+
+.cartRemovedMessage .cartMessageIcon {
+  background: #845f69;
 }
 
 .cartMessageContent {
@@ -348,27 +625,38 @@
 
 .cartMessageContent strong {
   display: block;
+
   margin-bottom: 4px;
+
   color: #432d35;
+
   font-size: 15px;
 }
 
 .cartMessageContent p {
   margin: 0;
+
   color: #725d65;
+
   font-size: 13px;
   line-height: 1.5;
 }
 
 .closeCartMessage {
-  flex-shrink: 0;
   align-self: flex-start;
+  flex-shrink: 0;
+
   padding: 0;
+
   border: none;
+
   background: transparent;
   color: #8b747c;
+
+  font-family: inherit;
   font-size: 22px;
   line-height: 1;
+
   cursor: pointer;
 }
 
@@ -388,62 +676,31 @@
   }
 }
 
-@media (max-width: 600px) {
-  .cartMessage {
-    top: 90px;
-    right: 16px;
-    left: 16px;
-    width: auto;
-    padding: 14px;
-  }
-
-  .cartMessageIcon {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
-}
-.cartRemovedMessage {
-  border: 1px solid rgba(132, 95, 105, 0.25);
-}
-
-.cartRemovedMessage .cartMessageIcon {
-  background: #845f69;
-}
-
 /* =========================
-   Bundles buttons
-   Add these rules to the end of Home.module.css
+   Tablet And Mobile
 ========================= */
 
-.headerActions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
+@media (max-width: 700px) {
+  .page {
+    width: min(520px, 94%);
+  }
 
-.bundlesHeaderButton {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid #892047;
-  border-radius: 999px;
-  background: #fff7f9;
-  color: #892047;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    color 0.2s ease;
-}
+  .hero {
+    padding-top: 12px;
+  }
 
-.bundlesHeaderButton:hover {
-  transform: translateY(-2px);
-  background: #892047;
-  color: #ffffff;
-}
+  .productsHeader {
+    flex-direction: column;
+    align-items: center;
 
+    text-align: center;
+  }
+
+  .productsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
 
 @media (max-width: 650px) {
   .headerActions {
@@ -454,6 +711,83 @@
   .cartHeaderButton {
     flex: 1;
   }
+}
 
+@media (max-width: 600px) {
+  .cartDrawer {
+    /*
+      شريط الإعلان على الموبايل 38px.
+      أضفنا 8px مسافة.
+    */
+    top: 46px;
+    right: 0;
 
+    width: 100%;
+
+    height: calc(100vh - 46px);
+    height: calc(100dvh - 46px);
+  }
+
+  .cartHeader {
+    min-height: 66px;
+    padding: 14px 16px;
+  }
+
+  .cartHeader h3 {
+    font-size: 20px;
+  }
+
+  .cartHeader button {
+    width: 36px;
+    height: 36px;
+
+    font-size: 18px;
+  }
+
+  .cartItems {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .cartFooter {
+    padding: 14px 14px 18px;
+  }
+
+  .cartMessage {
+    top: 90px;
+    right: 16px;
+    left: 16px;
+
+    width: auto;
+    padding: 14px;
+  }
+
+  .cartMessageIcon {
+    width: 36px;
+    height: 36px;
+
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .cartItem {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .cartItem img {
+    width: 74px;
+    height: 74px;
+  }
+
+  .productsGrid {
+    gap: 10px;
+  }
+}
+@media (max-width: 650px) {
+  .headerActionIcon {
+    width: 18px;
+    height: 18px;
+  }
 }

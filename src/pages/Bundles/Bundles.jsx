@@ -475,7 +475,7 @@ function handleAddToCart(bundle) {
             className={styles.homeFloatingButton}
             onClick={() => navigate("/")}
           >
-            🏠 Return to Products
+            🏠 
           </button>
 
           <button
@@ -636,33 +636,6 @@ function handleAddToCart(bundle) {
           </div>
         )}
 
-        <section className={styles.hero}>
-          <span>UNIQARE Special Offers</span>
-          <h1>Bundle Offers</h1>
-          <p>
-            Get your favorite hair-care products
-            together at a special price.
-          </p>
-
-          <div className={styles.heroActions}>
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-            >
-              Browse Products
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setCart(getCartItems());
-                setCartOpen(true);
-              }}
-            >
-              View Cart {cartCount > 0 && `(${cartCount})`}
-            </button>
-          </div>
-        </section>
 
         <section className={styles.bundlesSection}>
           <div className={styles.sectionHeader}>

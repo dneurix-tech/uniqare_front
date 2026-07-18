@@ -1,15 +1,24 @@
 .card {
-  overflow: hidden;
-  display: flex;
+  width: 100%;
   height: 100%;
   min-width: 0;
+
+  display: flex;
   flex-direction: column;
+
+  overflow: hidden;
+
   border: 1px solid rgba(137, 32, 71, 0.12);
   border-radius: 24px;
   outline: none;
+
   background: #ffffff;
-  box-shadow: 0 12px 35px rgba(137, 32, 71, 0.08);
+
+  box-shadow:
+    0 12px 35px rgba(137, 32, 71, 0.08);
+
   cursor: pointer;
+
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease,
@@ -18,8 +27,11 @@
 
 .card:hover {
   transform: translateY(-6px);
+
   border-color: rgba(137, 32, 71, 0.25);
-  box-shadow: 0 22px 48px rgba(137, 32, 71, 0.14);
+
+  box-shadow:
+    0 22px 48px rgba(137, 32, 71, 0.14);
 }
 
 .card:focus-visible {
@@ -32,22 +44,34 @@
   opacity: 0.82;
 }
 
+/* =========================
+   Product Image
+========================= */
+
 .imageWrapper {
   position: relative;
-  overflow: hidden;
+
   width: 100%;
   height: 280px;
+  flex-shrink: 0;
+
+  overflow: hidden;
+
   border-bottom: 1px solid #f4e2e7;
+
   background: #fffafb;
 }
 
 .image {
-  display: block;
   width: 100%;
   height: 100%;
   padding: 12px;
+
+  display: block;
+
   object-fit: contain;
   object-position: center;
+
   transition: transform 0.35s ease;
 }
 
@@ -55,18 +79,27 @@
   transform: scale(1.035);
 }
 
+/* =========================
+   Status Badges
+========================= */
+
 .badge {
   position: absolute;
   top: 14px;
   left: 14px;
   z-index: 2;
-  display: inline-flex;
+
   min-height: 30px;
   padding: 6px 12px;
+
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 999px;
+
   color: #ffffff;
+
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.3px;
@@ -85,66 +118,123 @@
   top: 14px;
   right: 14px;
   z-index: 2;
-  display: grid;
+
   min-width: 48px;
   height: 48px;
   padding: 5px;
+
+  display: grid;
   place-items: center;
+
   border-radius: 50%;
+
   background: #ffffff;
   color: #892047;
-  box-shadow: 0 7px 22px rgba(137, 32, 71, 0.2);
+
+  box-shadow:
+    0 7px 22px rgba(137, 32, 71, 0.2);
+
   font-size: 13px;
   font-weight: 900;
 }
 
+/* =========================
+   Card Content
+========================= */
+
 .content {
-  display: flex;
   flex: 1;
+  min-height: 0;
   padding: 20px;
+
+  display: flex;
   flex-direction: column;
 }
 
+/* =========================
+   Product Information
+========================= */
+
 .productInfo {
   min-width: 0;
+
+  /*
+    ارتفاع ثابت للاسم والوصف.
+    يمنع اختلاف طول الكروت.
+  */
+  min-height: 118px;
 }
 
 .title {
-  overflow: hidden;
-  display: -webkit-box;
+  min-height: 54px;
   margin: 0 0 10px;
+
+  display: -webkit-box;
+  overflow: hidden;
+
   color: #402c33;
+
   font-size: 20px;
   font-weight: 800;
   line-height: 1.35;
+
+  text-overflow: ellipsis;
+
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .description {
-  overflow: hidden;
-  display: -webkit-box;
-  min-height: 48px;
+  height: 48px;
   margin: 0;
+
+  display: -webkit-box;
+  overflow: hidden;
+
   color: #806a72;
+
   font-size: 14px;
   line-height: 1.7;
+
+  text-overflow: ellipsis;
+
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-.stockBox {
-  display: inline-flex;
-  width: fit-content;
-  margin-top: 16px;
-  padding: 7px 11px;
-  align-items: center;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 800;
+/* =========================
+   Stock
+========================= */
+
+/*
+  مساحة المخزون موجودة دائمًا،
+  حتى لو عدد المخزون لن يظهر.
+*/
+
+.stockArea {
+  min-height: 47px;
+  margin-top: 13px;
+
+  display: flex;
+  align-items: flex-start;
 }
 
-.stockAvailable {
+.stockBox {
+  width: fit-content;
+  max-width: 100%;
+  padding: 7px 11px;
+
+  display: inline-flex;
+  align-items: center;
+
+  border-radius: 10px;
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.stockLow {
   background: #f8e8ed;
   color: #892047;
 }
@@ -154,55 +244,100 @@
   color: #6c6265;
 }
 
+/* =========================
+   Price
+========================= */
+
 .priceSection {
-  display: flex;
-  min-height: 74px;
-  margin-top: 18px;
+  min-height: 86px;
+  margin-top: 5px;
   padding-top: 16px;
+
+  display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+
   border-top: 1px solid #f3e1e6;
 }
 
 .priceBox {
-  display: flex;
   min-width: 0;
+
+  display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
 .oldPrice {
   position: relative;
+
   width: fit-content;
+  min-height: 20px;
+
   color: #9b8a90;
+
   font-size: 14px;
   font-weight: 600;
+
   text-decoration: line-through;
   text-decoration-color: #892047;
   text-decoration-thickness: 2px;
 }
 
+.hiddenOldPrice {
+  visibility: hidden;
+}
+
 .price {
   color: #892047;
+
   font-size: 24px;
   font-weight: 900;
   line-height: 1.2;
+
+  white-space: nowrap;
+}
+
+.savingArea {
+  min-width: 0;
+  min-height: 28px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
 }
 
 .savingText {
-  flex-shrink: 0;
+  max-width: 100%;
   margin-bottom: 4px;
   padding: 5px 8px;
+
+  overflow: hidden;
+
   border-radius: 8px;
+
   background: #f8e8ed;
   color: #892047;
+
   font-size: 11px;
   font-weight: 800;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
+/* =========================
+   Buttons Footer
+========================= */
+
 .footer {
-  margin-top: 18px;
+  /*
+    يدفع الأزرار إلى أسفل الكارت،
+    حتى تكون في نفس المستوى.
+  */
+  margin-top: auto;
+  padding-top: 18px;
 }
 
 .actions {
@@ -216,11 +351,15 @@
 .disabledButton {
   min-height: 46px;
   padding: 10px 12px;
+
   border-radius: 13px;
+
   font-family: inherit;
   font-size: 13px;
   font-weight: 800;
+
   cursor: pointer;
+
   transition:
     transform 0.2s ease,
     background 0.2s ease,
@@ -230,34 +369,46 @@
 
 .viewButton {
   border: 1px solid #892047;
+
   background: #ffffff;
   color: #892047;
 }
 
 .viewButton:hover {
   background: #f9e9ee;
+
   transform: translateY(-2px);
 }
 
 .cartButton {
   border: 1px solid #892047;
+
   background: #892047;
   color: #ffffff;
 }
 
 .cartButton:hover {
   border-color: #721738;
+
   background: #721738;
+
   transform: translateY(-2px);
 }
 
 .disabledButton {
   width: 100%;
+
   border: 1px solid #d6d0d2;
+
   background: #ece8e9;
   color: #82787b;
+
   cursor: not-allowed;
 }
+
+/* =========================
+   Tablet
+========================= */
 
 @media (max-width: 768px) {
   .imageWrapper {
@@ -268,8 +419,20 @@
     padding: 17px;
   }
 
+  .productInfo {
+    min-height: 109px;
+  }
+
   .title {
+    min-height: 49px;
+
     font-size: 18px;
+  }
+
+  .description {
+    height: 44px;
+
+    font-size: 13px;
   }
 
   .price {
@@ -280,6 +443,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================
+   Mobile
+========================= */
 
 @media (max-width: 480px) {
   .card {
@@ -297,16 +464,20 @@
   .badge {
     top: 10px;
     left: 10px;
+
     min-height: 27px;
     padding: 5px 9px;
+
     font-size: 10px;
   }
 
   .discountBadge {
     top: 10px;
     right: 10px;
+
     min-width: 42px;
     height: 42px;
+
     font-size: 11px;
   }
 
@@ -314,30 +485,86 @@
     padding: 14px;
   }
 
+  .productInfo {
+    min-height: 104px;
+  }
+
+  .title {
+    min-height: 46px;
+    margin-bottom: 8px;
+
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
   .description {
-    min-height: 44px;
-    font-size: 13px;
+    height: 43px;
+
+    font-size: 12px;
+    line-height: 1.75;
+  }
+
+  .stockArea {
+    min-height: 43px;
+    margin-top: 11px;
+  }
+
+  .stockBox {
+    padding: 6px 8px;
+
+    font-size: 10px;
   }
 
   .priceSection {
-    min-height: 68px;
+    min-height: 100px;
+    padding-top: 13px;
+
     align-items: flex-start;
     flex-direction: column;
+    justify-content: flex-start;
     gap: 7px;
+  }
+
+  .oldPrice {
+    min-height: 18px;
+
+    font-size: 12px;
+  }
+
+  .price {
+    font-size: 18px;
+  }
+
+  .savingArea {
+    min-height: 24px;
   }
 
   .savingText {
     margin-bottom: 0;
+    padding: 4px 6px;
+
+    font-size: 9px;
   }
 
   .footer {
-    margin-top: 14px;
+    min-height: 104px;
+    padding-top: 14px;
   }
 
   .viewButton,
   .cartButton,
   .disabledButton {
     min-height: 42px;
-    font-size: 12px;
+
+    font-size: 11px;
+  }
+
+  /*
+    المنتج المنتهي لديه زر واحد فقط.
+    نجعل الزر بنفس مساحة الزرين في باقي الكروت.
+  */
+
+  .disabledButton {
+    min-height: 94px;
   }
 }
