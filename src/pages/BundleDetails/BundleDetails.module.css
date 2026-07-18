@@ -3,16 +3,12 @@
   margin: 0 auto;
 }
 
-/* =========================
-   Back Button
-========================= */
-
 .backWrapper {
   padding-top: 20px;
 }
 
 /* =========================
-   Details Layout
+   Layout
 ========================= */
 
 .detailsSection {
@@ -28,15 +24,16 @@
 }
 
 /* =========================
-   Image Box
+   Image
 ========================= */
 
 .imageBox {
   position: relative;
 
   width: 100%;
-  height: 520px;
   min-width: 0;
+
+  align-self: start;
 
   overflow: hidden;
 
@@ -48,9 +45,14 @@
   box-shadow: var(--shadow-soft);
 }
 
+/*
+  الكارت أصبح على ارتفاع الصورة نفسها،
+  بدون 520px أو 640px ثابتة.
+*/
+
 .imageBox img {
   width: 100%;
-  height: 100%;
+  height: auto;
 
   display: block;
 
@@ -59,8 +61,7 @@
 }
 
 .imagePlaceholder {
-  width: 100%;
-  height: 100%;
+  min-height: 380px;
   padding: 40px 20px;
 
   display: grid;
@@ -73,7 +74,7 @@
 }
 
 /* =========================
-   Badges
+   Image Badges
 ========================= */
 
 .discountBadge,
@@ -134,12 +135,12 @@
   background: rgba(255, 255, 255, 0.92);
   color: var(--uniqare-primary);
 
+  box-shadow: 0 7px 18px rgba(60, 25, 38, 0.13);
+
   font-family: inherit;
   font-size: 23px;
 
   cursor: pointer;
-
-  box-shadow: 0 7px 18px rgba(60, 25, 38, 0.13);
 
   transition:
     background 0.2s ease,
@@ -184,7 +185,7 @@
   border: none;
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.7);
 
   cursor: pointer;
 
@@ -254,8 +255,14 @@
    Title
 ========================= */
 
+/*
+  مفيش ارتفاع ثابت للعنوان.
+  لو الاسم سطر واحد مش هيظهر تحته فراغ.
+  لو طويل يظهر في سطرين ثم نقاط.
+*/
+
 .content h2 {
-  height: 78px;
+  max-height: 2.3em;
   margin: 15px 0 9px;
 
   display: -webkit-box;
@@ -264,7 +271,7 @@
   color: var(--uniqare-primary);
 
   font-size: clamp(27px, 4vw, 36px);
-  line-height: 1.1;
+  line-height: 1.15;
 
   text-overflow: ellipsis;
 
@@ -276,18 +283,18 @@
    Description
 ========================= */
 
-.descriptionSection {
-  height: 132px;
-  min-height: 132px;
+/*
+  مفيش مساحة بيضاء ثابتة.
+  الوصف القصير يأخذ حجمه فقط.
+*/
 
-  display: flex;
-  flex-direction: column;
+.descriptionSection {
+  width: 100%;
 }
 
 .descriptionViewport {
   width: 100%;
-  height: 96px;
-  min-height: 96px;
+  max-height: 105px;
 
   overflow: hidden;
 }
@@ -313,9 +320,14 @@
   -webkit-line-clamp: 3;
 }
 
+/*
+  Show More لا يجعل الكارت ضخمًا.
+  النص الطويل فقط يتحرك داخل مساحة معقولة.
+*/
+
 .descriptionExpanded {
   width: 100%;
-  height: 96px;
+  max-height: 105px;
   padding-right: 7px;
 
   display: block;
@@ -348,11 +360,14 @@
 }
 
 .descriptionButtonArea {
-  min-height: 30px;
-  padding-top: 5px;
-
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+
+  margin-top: 5px;
+}
+
+.descriptionButtonArea:empty {
+  display: none;
 }
 
 .descriptionToggle {
@@ -377,16 +392,18 @@
 }
 
 /* =========================
-   Bundle Items
+   Bundle Includes
 ========================= */
 
-.bundleItems {
-  height: 145px;
-  min-height: 145px;
-  margin: 14px 0;
-  padding: 13px 10px 13px 15px;
+/*
+  لا يوجد ارتفاع ثابت ولا Scroll.
+  جميع المنتجات تظهر بالكامل.
+*/
 
-  overflow: hidden;
+.bundleItems {
+  width: 100%;
+  margin: 16px 0;
+  padding: 14px 16px;
 
   border-radius: 14px;
 
@@ -394,61 +411,41 @@
 }
 
 .bundleItems h3 {
-  height: 21px;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
 
   color: var(--uniqare-primary);
 
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .bundleItems ul {
-  height: 91px;
   margin: 0;
-  padding: 0 6px 0 0;
+  padding: 0;
 
   display: flex;
   flex-direction: column;
-  gap: 7px;
-
-  overflow-x: hidden;
-  overflow-y: auto;
+  gap: 9px;
 
   list-style: none;
-
-  overscroll-behavior: contain;
-
-  scrollbar-width: thin;
-  scrollbar-color:
-    rgba(137, 32, 71, 0.38)
-    transparent;
-}
-
-.bundleItems ul::-webkit-scrollbar {
-  width: 5px;
-}
-
-.bundleItems ul::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-
-  background: rgba(137, 32, 71, 0.38);
 }
 
 .bundleItems li {
-  min-height: 37px;
+  width: 100%;
+  min-width: 0;
 
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
 
   color: var(--uniqare-muted);
 
   font-size: 13px;
+  line-height: 1.4;
 }
 
 .bundleItems li img {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
 
   border-radius: 7px;
@@ -459,10 +456,11 @@
 .bundleItems li span {
   min-width: 0;
 
-  overflow: hidden;
+  overflow-wrap: anywhere;
+}
 
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.bundleItems li strong {
+  color: var(--uniqare-primary);
 }
 
 /* =========================
@@ -536,7 +534,6 @@
 ========================= */
 
 .quantityBox {
-  min-height: 76px;
   margin-top: 11px;
 }
 
@@ -634,7 +631,7 @@
 ========================= */
 
 .cartMessageArea {
-  min-height: 0;
+  width: 100%;
 }
 
 .cartMessageArea:empty {
@@ -642,7 +639,7 @@
 }
 
 .cartMessageArea:not(:empty) {
-  margin-top: 9px;
+  margin-top: 10px;
 }
 
 .cartMessage {
@@ -653,8 +650,6 @@
   display: flex;
   align-items: center;
 
-  overflow: hidden;
-
   border-radius: 12px;
 
   background: #fff7fa;
@@ -662,8 +657,7 @@
 
   font-size: 12px;
   font-weight: 800;
-
-  text-overflow: ellipsis;
+  line-height: 1.5;
 }
 
 /* =========================
@@ -802,13 +796,7 @@
     padding: 26px 0 36px;
   }
 
-  .imageBox {
-    width: 100%;
-    height: auto;
-
-    aspect-ratio: 1 / 1;
-  }
-
+  .imageBox,
   .content {
     width: 100%;
   }
@@ -834,6 +822,10 @@
 
   .imageBox {
     border-radius: 19px;
+  }
+
+  .imagePlaceholder {
+    min-height: 260px;
   }
 
   .content {
@@ -883,21 +875,15 @@
   }
 
   .content h2 {
-    height: 58px;
-    margin: 13px 0 8px;
+    max-height: 2.4em;
+    margin: 13px 0 7px;
 
     font-size: 25px;
-    line-height: 1.16;
-  }
-
-  .descriptionSection {
-    height: 116px;
-    min-height: 116px;
+    line-height: 1.2;
   }
 
   .descriptionViewport {
-    height: 84px;
-    min-height: 84px;
+    max-height: 88px;
   }
 
   .descriptionText {
@@ -910,12 +896,7 @@
   }
 
   .descriptionExpanded {
-    height: 84px;
-  }
-
-  .descriptionButtonArea {
-    min-height: 27px;
-    padding-top: 4px;
+    max-height: 88px;
   }
 
   .descriptionToggle {
@@ -923,33 +904,29 @@
   }
 
   .bundleItems {
-    height: 132px;
-    min-height: 132px;
-    margin: 12px 0;
-    padding: 11px 8px 11px 12px;
+    margin: 13px 0;
+    padding: 12px;
   }
 
   .bundleItems h3 {
-    height: 19px;
-    margin-bottom: 7px;
+    margin-bottom: 9px;
 
     font-size: 13px;
   }
 
   .bundleItems ul {
-    height: 83px;
+    gap: 8px;
   }
 
   .bundleItems li {
-    min-height: 34px;
     gap: 8px;
 
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .bundleItems li img {
-    width: 31px;
-    height: 31px;
+    width: 32px;
+    height: 32px;
   }
 
   .priceContainer {
@@ -977,7 +954,6 @@
   }
 
   .quantityBox {
-    min-height: 70px;
     margin-top: 10px;
   }
 
@@ -1050,23 +1026,12 @@
   }
 
   .content h2 {
-    height: 54px;
-
     font-size: 23px;
   }
 
-  .descriptionSection {
-    height: 112px;
-    min-height: 112px;
-  }
-
-  .descriptionViewport {
-    height: 81px;
-    min-height: 81px;
-  }
-
+  .descriptionViewport,
   .descriptionExpanded {
-    height: 81px;
+    max-height: 82px;
   }
 
   .quantityControl input {
