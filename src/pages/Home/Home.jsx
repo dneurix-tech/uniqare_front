@@ -14,7 +14,7 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import ProductCard from "../../components/ProductCard/ProductCard";
 
-import { getAdminProducts } from "../../services/storage";
+import { getProducts } from "../../services/storage";
 
 import {
   addToCart,
@@ -139,7 +139,7 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const data = await getAdminProducts();
+        const data = await getProducts();
 
         if (Array.isArray(data)) {
           const sortedProducts = [...data].sort(
