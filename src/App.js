@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home/Home";
@@ -11,19 +12,58 @@ import ReviewsPage from "./pages/Admin/ReviewsPage";
 import AboutUs from "./pages/AboutUs/AboutUs";
 import Bundles from "./pages/Bundles/Bundles";
 import BundleDetails from "./pages/BundleDetails/BundleDetails";
+import {
+  ADMIN_AUTH_EVENT,
+  isAdminAuthenticated,
+} from "./services/storage";
 
 export const ADMIN_BASE_PATH = "/uniqare-control-panel-9x7";
 export const ADMIN_LOGIN_PATH = `${ADMIN_BASE_PATH}/login`;
 
-function ProtectedAdminRoute({ children }) {
-  const isAdmin =
-    localStorage.getItem("uniqare_admin_logged_in") === "true";
+function useAdminAuthentication() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    isAdminAuthenticated
+  );
 
-  if (!isAdmin) {
+  useEffect(() => {
+    function refreshAuthentication() {
+      setIsAuthenticated(isAdminAuthenticated());
+    }
+
+    window.addEventListener(
+      ADMIN_AUTH_EVENT,
+      refreshAuthentication
+    );
+
+    return () => {
+      window.removeEventListener(
+        ADMIN_AUTH_EVENT,
+        refreshAuthentication
+      );
+    };
+  }, []);
+
+  return isAuthenticated;
+}
+
+function ProtectedAdminRoute({ children }) {
+  const isAuthenticated = useAdminAuthentication();
+
+  if (!isAuthenticated) {
     return <Navigate to={ADMIN_LOGIN_PATH} replace />;
   }
 
   return children;
+}
+
+function AdminLoginRoute() {
+  const isAuthenticated = useAdminAuthentication();
+
+  if (isAuthenticated) {
+    return <Navigate to={ADMIN_BASE_PATH} replace />;
+  }
+
+  return <AdminLogin />;
 }
 
 export default function App() {
@@ -38,13 +78,12 @@ export default function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/checkout/:id" element={<Checkout />} />
         <Route path="/bundles" element={<Bundles />} />
-        <Route path="/bundles/:id"element={<BundleDetails />}
-/>
+        <Route path="/bundles/:id" element={<BundleDetails />} />
 
         {/* Admin login */}
         <Route
           path={ADMIN_LOGIN_PATH}
-          element={<AdminLogin />}
+          element={<AdminLoginRoute />}
         />
 
         {/* Admin dashboard */}

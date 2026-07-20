@@ -1,27 +1,43 @@
-import { getPublicReviews } from './storage';
+import { getPublicReviews } from "./storage";
 
-describe('getPublicReviews', () => {
+describe("getPublicReviews", () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
-  it('returns fallback reviews when the backend reviews endpoint is unavailable', async () => {
+  it("returns active reviews from the backend", async () => {
+    const backendReviews = [
+      {
+        id: 1,
+        customer_name: "Customer",
+        description: "Great product",
+        rating: 5,
+        is_active: true,
+      },
+    ];
+
     global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      json: async () => ({ detail: 'Not Found' }),
+      ok: true,
+      status: 200,
+      json: async () => backendReviews,
     });
 
-    const reviews = await getPublicReviews();
+    await expect(getPublicReviews()).resolves.toEqual(
+      backendReviews
+    );
+  });
 
-    expect(Array.isArray(reviews)).toBe(true);
-    expect(reviews.length).toBeGreaterThan(0);
-    expect(reviews[0]).toEqual(
-      expect.objectContaining({
-        customer_name: expect.any(String),
-        description: expect.any(String),
-        rating: expect.any(Number),
-      })
+  it("throws a useful error when reviews cannot be loaded", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => JSON.stringify({
+        detail: "Reviews service unavailable",
+      }),
+    });
+
+    await expect(getPublicReviews()).rejects.toThrow(
+      "Reviews service unavailable"
     );
   });
 });

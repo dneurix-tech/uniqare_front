@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  adminLogout,
   addAnnouncement,
   addBundle,
   addCoupon,
@@ -230,8 +231,10 @@ export default function AdminDashboard() {
   }
 
   function logout() {
-    localStorage.removeItem("uniqare_admin_logged_in");
-    navigate("/uniqare-control-panel-9x7/login");
+    adminLogout();
+    navigate("/uniqare-control-panel-9x7/login", {
+      replace: true,
+    });
   }
 
   /* =========================

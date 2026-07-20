@@ -1,4 +1,115 @@
-const API_URL = "https://uniqare-production.up.railway.app";
+const API_URL = (
+  process.env.REACT_APP_API_URL ||
+  "https://uniqare-production.up.railway.app"
+).replace(/\/$/, "");
+
+const ADMIN_TOKEN_KEY = "uniqare_admin_token";
+export const ADMIN_AUTH_EVENT = "uniqare-admin-auth-changed";
+
+function notifyAdminAuthChanged() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(ADMIN_AUTH_EVENT));
+  }
+}
+
+function decodeTokenPayload(token) {
+  try {
+    const encodedPayload = token.split(".")[0];
+    const normalizedPayload = encodedPayload
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const padding = "=".repeat(
+      (4 - (normalizedPayload.length % 4)) % 4
+    );
+
+    return JSON.parse(
+      window.atob(normalizedPayload + padding)
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function getAdminToken() {
+  return sessionStorage.getItem(ADMIN_TOKEN_KEY) || "";
+}
+
+export function isAdminAuthenticated() {
+  const token = getAdminToken();
+
+  if (!token) return false;
+
+  const payload = decodeTokenPayload(token);
+  const isValid = Boolean(
+    payload?.typ === "admin" &&
+    Number(payload?.exp || 0) * 1000 > Date.now()
+  );
+
+  if (!isValid) {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  }
+
+  return isValid;
+}
+
+export function adminLogout() {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem("uniqare_admin_logged_in");
+  notifyAdminAuthChanged();
+}
+
+export async function adminLogin(email, password) {
+  const response = await fetch(`${API_URL}/auth/admin/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const errorMessage = await getApiErrorMessage(
+      response,
+      "Invalid email or password"
+    );
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json();
+
+  if (!result?.access_token) {
+    throw new Error("The server did not return an admin token");
+  }
+
+  sessionStorage.setItem(ADMIN_TOKEN_KEY, result.access_token);
+  localStorage.removeItem("uniqare_admin_logged_in");
+  notifyAdminAuthChanged();
+
+  return result;
+}
+
+async function adminFetch(url, options = {}) {
+  const token = getAdminToken();
+
+  if (!token || !isAdminAuthenticated()) {
+    adminLogout();
+    throw new Error("Admin session expired. Please log in again.");
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    adminLogout();
+  }
+
+  return response;
+}
 
 /* =========================
    Helpers
@@ -204,7 +315,7 @@ export async function getProducts() {
 }
 
 export async function getAdminProducts() {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/products/admin/all`,
     {
       method: "GET",
@@ -311,7 +422,7 @@ export async function addProduct(product) {
     );
   }
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/products/`,
     {
       method: "POST",
@@ -425,7 +536,7 @@ export async function updateProduct(
     );
   }
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/products/${id}`,
     {
       method: "PATCH",
@@ -454,7 +565,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/products/${id}`,
     {
       method: "DELETE",
@@ -483,7 +594,7 @@ export async function deleteProduct(id) {
 ========================= */
 
 export async function getOrders() {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/orders/`,
     {
       method: "GET",
@@ -583,10 +694,6 @@ export async function addOrder(order) {
       errorMessage
     );
 
-    console.error(
-      "Sent order payload:",
-      payload
-    );
 
     throw new Error(errorMessage);
   }
@@ -604,7 +711,7 @@ export async function updateOrderDetails(
   orderId,
   orderData
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/orders/${orderId}`,
     {
       method: "PATCH",
@@ -637,7 +744,7 @@ export async function updateOrderDetails(
 export async function deleteOrder(
   orderId
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/orders/${orderId}`,
     {
       method: "DELETE",
@@ -658,8 +765,16 @@ export async function deleteOrder(
 
 export async function updateOrderPayment(
   orderId,
-  paymentData
+  paymentData,
+  orderToken = ""
 ) {
+  const adminToken = getAdminToken();
+  const authorizationHeaders = orderToken
+    ? { "X-Order-Token": orderToken }
+    : adminToken
+      ? { Authorization: `Bearer ${adminToken}` }
+      : {};
+
   const response = await fetch(
     `${API_URL}/orders/${orderId}/payment`,
     {
@@ -667,6 +782,7 @@ export async function updateOrderPayment(
       headers: {
         "Content-Type":
           "application/json",
+        ...authorizationHeaders,
       },
       body: JSON.stringify({
         payment_method:
@@ -718,7 +834,7 @@ export async function updateOrderShippingStatus(
     ? "shipped"
     : "pending";
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/orders/${orderId}/status?status=${status}`,
     {
       method: "PATCH",
@@ -753,7 +869,7 @@ export async function updateOrderShippingStatus(
 ========================= */
 
 export async function getAdminCoupons() {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/coupons/admin/all`,
     {
       method: "GET",
@@ -780,7 +896,7 @@ export async function getAdminCoupons() {
 export async function addCoupon(
   couponData
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/coupons/`,
     {
       method: "POST",
@@ -810,7 +926,7 @@ export async function updateCoupon(
   couponId,
   couponData
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/coupons/${couponId}`,
     {
       method: "PATCH",
@@ -839,7 +955,7 @@ export async function updateCoupon(
 export async function deleteCoupon(
   couponId
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/coupons/${couponId}`,
     {
       method: "DELETE",
@@ -959,7 +1075,7 @@ export async function getPublicReviews() {
 }
 
 export async function getAdminReviews() {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/reviews/admin/all`,
     {
       method: "GET",
@@ -989,7 +1105,7 @@ export async function addReview(
   const formData =
     createReviewFormData(reviewData);
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/reviews/`,
     {
       method: "POST",
@@ -1016,7 +1132,7 @@ export async function updateReview(
   const formData =
     createReviewFormData(reviewData);
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/reviews/${reviewId}`,
     {
       method: "PATCH",
@@ -1039,7 +1155,7 @@ export async function updateReview(
 export async function deleteReview(
   reviewId
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/reviews/${reviewId}`,
     {
       method: "DELETE",
@@ -1084,7 +1200,7 @@ export async function getActiveAnnouncements() {
 }
 
 export async function getAdminAnnouncements() {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/announcements/admin/all`,
     {
       method: "GET",
@@ -1108,7 +1224,7 @@ export async function getAdminAnnouncements() {
 }
 
 export async function addAnnouncement(announcementData) {
-  const response = await fetch(`${API_URL}/announcements/`, {
+  const response = await adminFetch(`${API_URL}/announcements/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1131,7 +1247,7 @@ export async function updateAnnouncement(
   announcementId,
   announcementData
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/announcements/${announcementId}`,
     {
       method: "PATCH",
@@ -1154,7 +1270,7 @@ export async function updateAnnouncement(
 }
 
 export async function deleteAnnouncement(announcementId) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/announcements/${announcementId}`,
     {
       method: "DELETE",
@@ -1204,7 +1320,7 @@ export async function getPublicBundles() {
 }
 
 export async function getAdminBundles() {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/bundles/admin/all`,
     {
       method: "GET",
@@ -1315,7 +1431,7 @@ export async function addBundle(bundleData) {
     bundleData
   );
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/bundles/`,
     {
       method: "POST",
@@ -1343,7 +1459,7 @@ export async function updateBundle(
     bundleData
   );
 
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/bundles/${bundleId}`,
     {
       method: "PATCH",
@@ -1364,7 +1480,7 @@ export async function updateBundle(
 }
 
 export async function deleteBundle(bundleId) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/bundles/${bundleId}`,
     {
       method: "DELETE",
@@ -1387,7 +1503,7 @@ export async function deleteBundleImage(
   bundleId,
   imageId
 ) {
-  const response = await fetch(
+  const response = await adminFetch(
     `${API_URL}/bundles/${bundleId}/images/${imageId}`,
     {
       method: "DELETE",

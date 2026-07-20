@@ -439,7 +439,11 @@ function handlePaymentChoice(method) {
 
       const createdOrder = await addOrder(orderPayload);
 
-      await updateOrderPayment(createdOrder.id, getPaymentPayload(selectedPayment));
+      await updateOrderPayment(
+        createdOrder.id,
+        getPaymentPayload(selectedPayment),
+        createdOrder.order_token
+      );
 
       if (!id) {
         clearCart();
