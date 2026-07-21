@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 import {
   adminLogout,
   addAnnouncement,
@@ -407,6 +408,243 @@ export default function AdminDashboard() {
     if (Number.isNaN(date.getTime())) return value;
 
     return date.toLocaleString();
+  }
+
+  function normalizePhoneForWhatsApp(value) {
+    let phone = String(value || "").replace(/\D/g, "");
+
+    if (!phone) return "";
+
+    if (phone.startsWith("00")) {
+      phone = phone.slice(2);
+    }
+
+    if (phone.startsWith("0")) {
+      phone = `20${phone.slice(1)}`;
+    } else if (phone.length === 10 && phone.startsWith("1")) {
+      phone = `20${phone}`;
+    }
+
+    return phone;
+  }
+
+  function getOrderWhatsAppUrl(order) {
+    const phone = normalizePhoneForWhatsApp(order.phone);
+
+    if (!phone) return "";
+
+    const customerName = getCustomerName(order);
+
+    const message = [
+      `Hello ${customerName},`,
+      "",
+      `This is UNIQARE regarding your order #${order.id}.`,
+      "We are contacting you to confirm your order details.",
+    ].join("\n");
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  }
+
+  function makeSpreadsheetCellSafe(value) {
+    if (value === null || value === undefined) return "";
+
+    const text = String(value);
+
+    if (/^[=+\-@]/.test(text)) {
+      return `'${text}`;
+    }
+
+    return text;
+  }
+
+  function getOrderProductsSummary(order) {
+    const items = getOrderItems(order);
+
+    if (items.length === 0) {
+      return getOrderProductTitle(order);
+    }
+
+    return items
+      .map((item) => {
+        const productName =
+          item.product_name ||
+          item.product?.name ||
+          item.name ||
+          `Product #${item.product_id}`;
+
+        const quantity = Number(item.quantity || 0);
+
+        return `${quantity} × ${productName}`;
+      })
+      .join(" | ");
+  }
+
+  function buildOrdersExportRows() {
+    return orders.map((order) => ({
+      "Order ID": order.id,
+      Date: formatDate(order.created_at || order.createdAt),
+      "Customer Name": makeSpreadsheetCellSafe(getCustomerName(order)),
+      Phone: makeSpreadsheetCellSafe(order.phone || ""),
+      Email: makeSpreadsheetCellSafe(order.email || ""),
+      Governorate: makeSpreadsheetCellSafe(order.governorate || ""),
+      Address: makeSpreadsheetCellSafe(order.address || ""),
+      Note: makeSpreadsheetCellSafe(order.note || ""),
+      Products: makeSpreadsheetCellSafe(getOrderProductsSummary(order)),
+      Status: makeSpreadsheetCellSafe(order.status || "pending"),
+      "Payment Method": makeSpreadsheetCellSafe(
+        order.payment_method || "Not selected"
+      ),
+      "Payment Status": makeSpreadsheetCellSafe(order.payment_status || ""),
+      "Payment Details": makeSpreadsheetCellSafe(order.payment_details || ""),
+      Coupon: makeSpreadsheetCellSafe(order.coupon_code || ""),
+      "Subtotal EGP": Number(order.subtotal_price || 0),
+      "Discount EGP": Number(order.discount_amount || 0),
+      "Total EGP": getOrderTotal(order),
+    }));
+  }
+
+  function buildOrderItemsExportRows() {
+    return orders.flatMap((order) => {
+      const items = getOrderItems(order);
+
+      return items.map((item) => {
+        const productName =
+          item.product_name ||
+          item.product?.name ||
+          item.name ||
+          `Product #${item.product_id}`;
+
+        const quantity = Number(item.quantity || 0);
+        const unitPrice = Number(item.unit_price || 0);
+        const itemTotal = Number(
+          item.total_price || unitPrice * quantity || 0
+        );
+
+        return {
+          "Order ID": order.id,
+          Date: formatDate(order.created_at || order.createdAt),
+          Customer: makeSpreadsheetCellSafe(getCustomerName(order)),
+          Phone: makeSpreadsheetCellSafe(order.phone || ""),
+          "Product ID": item.product_id || "",
+          Product: makeSpreadsheetCellSafe(productName),
+          Quantity: quantity,
+          "Unit Price EGP": unitPrice,
+          "Item Total EGP": Number(itemTotal.toFixed(2)),
+        };
+      });
+    });
+  }
+
+  function exportOrdersToExcel() {
+    const orderRows = buildOrdersExportRows();
+
+    if (orderRows.length === 0) {
+      alert("There are no orders to export");
+      return;
+    }
+
+    const itemRows = buildOrderItemsExportRows();
+    const workbook = XLSX.utils.book_new();
+    const ordersSheet = XLSX.utils.json_to_sheet(orderRows);
+    const itemsSheet = XLSX.utils.json_to_sheet(
+      itemRows.length > 0
+        ? itemRows
+        : [
+            {
+              "Order ID": "",
+              Date: "",
+              Customer: "",
+              Phone: "",
+              "Product ID": "",
+              Product: "",
+              Quantity: "",
+              "Unit Price EGP": "",
+              "Item Total EGP": "",
+            },
+          ]
+    );
+
+    ordersSheet["!cols"] = [
+      { wch: 10 },
+      { wch: 22 },
+      { wch: 24 },
+      { wch: 18 },
+      { wch: 28 },
+      { wch: 18 },
+      { wch: 38 },
+      { wch: 32 },
+      { wch: 55 },
+      { wch: 15 },
+      { wch: 22 },
+      { wch: 22 },
+      { wch: 35 },
+      { wch: 15 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 16 },
+    ];
+
+    itemsSheet["!cols"] = [
+      { wch: 10 },
+      { wch: 22 },
+      { wch: 24 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 40 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 18 },
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, ordersSheet, "Orders");
+    XLSX.utils.book_append_sheet(workbook, itemsSheet, "Order Items");
+
+    const today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `uniqare-orders-${today}.xlsx`);
+  }
+
+  function convertRowsToGoogleSheetsText(rows) {
+    if (!rows.length) return "";
+
+    const headers = Object.keys(rows[0]);
+
+    const cleanValue = (value) =>
+      String(value ?? "")
+        .replace(/\t/g, " ")
+        .replace(/\r?\n/g, " ");
+
+    const headerRow = headers.join("\t");
+    const dataRows = rows.map((row) =>
+      headers.map((header) => cleanValue(row[header])).join("\t")
+    );
+
+    return [headerRow, ...dataRows].join("\n");
+  }
+
+  async function openOrdersInGoogleSheets() {
+    const orderRows = buildOrdersExportRows();
+
+    if (orderRows.length === 0) {
+      alert("There are no orders to export");
+      return;
+    }
+
+    window.open("https://sheets.new", "_blank", "noopener,noreferrer");
+
+    const sheetsText = convertRowsToGoogleSheetsText(orderRows);
+
+    try {
+      await navigator.clipboard.writeText(sheetsText);
+
+      alert(
+        "Orders copied successfully. A new Google Sheet has been opened. Press Ctrl + V inside the first cell."
+      );
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Google Sheets was opened, but the browser could not copy the orders. Use Download Excel instead."
+      );
+    }
   }
 
   function getCustomerName(order) {
@@ -1945,7 +2183,91 @@ Storage
 
       {activeTab === "orders" && (
         <section className={styles.section}>
-          <h2>Orders</h2>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "14px",
+              marginBottom: "22px",
+            }}
+          >
+            <div>
+              <h2 style={{ margin: "0 0 5px" }}>Orders</h2>
+              <p style={{ margin: 0, color: "#845f69" }}>
+                Manage orders and export customer and product data.
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={exportOrdersToExcel}
+                disabled={loadingOrders || orders.length === 0}
+                style={{
+                  background: "#217346",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 2v6h6" />
+                  <path d="m8 13 4 5m0-5-4 5" />
+                </svg>
+                Download Excel
+              </button>
+
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={openOrdersInGoogleSheets}
+                disabled={loadingOrders || orders.length === 0}
+                style={{
+                  background: "#0f9d58",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="4" y="3" width="16" height="18" rx="2" />
+                  <path d="M8 8h8M8 12h8M8 16h8M12 8v8" />
+                </svg>
+                Google Sheets
+              </button>
+            </div>
+          </div>
 
           {editingOrderId && (
             <form className={styles.productForm} onSubmit={handleOrderUpdate}>
@@ -2261,7 +2583,55 @@ Storage
                         <div>
                           <h4>Customer Data</h4>
                           <p><strong>Name:</strong> {getCustomerName(order)}</p>
-                          <p><strong>Phone:</strong> {order.phone || "-"}</p>
+                          <p>
+                            <strong>Phone:</strong>{" "}
+
+                            {order.phone ? (
+                              <a
+                                href={getOrderWhatsAppUrl(order)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Open customer WhatsApp"
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  padding: "5px 9px",
+                                  border: "1px solid rgba(37, 211, 102, 0.35)",
+                                  borderRadius: "999px",
+                                  background: "rgba(37, 211, 102, 0.1)",
+                                  color: "#128c4a",
+                                  fontWeight: 900,
+                                  textDecoration: "none",
+                                }}
+                              >
+                                <span>{order.phone}</span>
+
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  width="17"
+                                  height="17"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.44L3 20l1.06-5.4A8.5 8.5 0 1 1 21 11.5Z" />
+                                  <path d="M8.5 8.5c.5 3 2 4.5 5 5" />
+                                  <path d="m8.5 8.5 1.2-.5 1 2-1 .8" />
+                                  <path d="m13.5 13.5.8-1 2 1-0.5 1.2" />
+                                </svg>
+
+                                <small style={{ fontWeight: 900 }}>
+                                  WhatsApp
+                                </small>
+                              </a>
+                            ) : (
+                              "-"
+                            )}
+                          </p>
                           <p><strong>Email:</strong> {order.email || "-"}</p>
                           <p>
                             <strong>Governorate:</strong>{" "}
